@@ -14,5 +14,14 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return 'hey';
 });
+//$router->get('/issues', 'IssuesController@index');
+
+$router->get('/issues', 'IssuesController@index');
+$router->get('/issues/prueba', 'IssuesController@createIssue');
+
+$router->get('/issues/{issue_id}', 'IssuesController@show');
+$router->get('/issues/user/{code_user}', 'IssuesController@getUserIssues');
+
+
