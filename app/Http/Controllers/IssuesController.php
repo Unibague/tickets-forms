@@ -21,7 +21,7 @@ class IssuesController extends Controller
     public function show(int $issue_id)
     {
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-        $response = $mantisApi->getIssueById($issue_id)->getBody();
+        $response = $mantisApi->getIssueById($issue_id);
         return $response;
         return DB::table('tickets_convertforms_conversions')->get();
     }
@@ -34,11 +34,9 @@ class IssuesController extends Controller
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $full_response = [];
         foreach ($user_issues as $user_issue) {
-            $full_response[] = json_decode($mantisApi->getIssueById($user_issue->issue_id)->getBody(), false)->issues[0];
+            $full_response[] = json_decode($mantisApi->getIssueById($user_issue->issue_id), false)->issues[0];
         }
         return $full_response;
-
-        return DB::table('tickets_convertforms_conversions')->get();
     }
 
     public function createIssue(Request $request)
@@ -48,11 +46,16 @@ class IssuesController extends Controller
             'conversion_id' => $request->input('conversion_id'),
             'issue_id' => 1
         ];
-        DB::table('user_issues_form')
-            ->insert($data);
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-        $mantisApi->createIssue($data);
+        $issue_id = $mantisApi->createIssue($data);
+        dd($issue_id);
+        return json_decode($issue_id);
 
+        die();
+
+        $data['issue_id'] = $issue_id;
+        $user_issues_form = DB::table('user_issues_form')
+            ->insert($data);
 
     }
 
