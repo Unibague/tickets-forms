@@ -51,8 +51,7 @@ class MantisApi
     public function getAllIssues()
     {
         $this->buildHttpClient();
-        $headers = ['Authorization' => $this->authorizationToken];
-        $response = $this->httpClient->request('GET', 'issues', ['headers' => $headers]);
+        $response = $this->makeRequest('GET', 'issues');
         return $response;
 
     }
@@ -81,6 +80,37 @@ class MantisApi
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_HTTPHEADER => ['Authorization: ' . $this->authorizationToken]
         ));
+    }
+
+    /**
+     * @param String $method
+     * @param String $endpoint
+     * @param array $options
+     * @return bool|string
+     */
+    private function makeRequest(string $method, string $endpoint, array $options = [])
+    {
+        $this->buildUrl($endpoint); //Set the full URL for making the request.
+        curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Asign it to te client
+        curl_setopt($this->httpClient, CURLOPT_CUSTOMREQUEST, $method); //Make http method to post
+        if (isset($options['body'])) {
+            curl_setopt($this->httpClient, CURLOPT_POSTFIELDS, $options['body']); //Make http method to post
+        }
+        if (isset($options['headers'])) {
+            curl_setopt($this->httpClient, CURLOPT_HTTPHEADER, $options['headers']); // Set auth header
+        }
+        $response = curl_exec($this->httpClient);
+        curl_close($this->httpClient);
+        return $response;
+    }
+
+    /**
+     * @param string $newEndpoint
+     */
+    private function buildUrl(string $newEndpoint): void
+    {
+        $this->endpoint = $newEndpoint;
+        $this->fullEndpointUrl = $this->mantisApiBaseUrl . '/' . $this->endpoint;
     }
 
     /**
@@ -114,16 +144,7 @@ class MantisApi
             'headers' => $headers,
             'body' => $rawBody
         ];
-        return $this->makeRequest('POST','issues',$options);
-    }
-
-    /**
-     * @param string $newEndpoint
-     */
-    private function buildUrl(string $newEndpoint): void
-    {
-        $this->endpoint = $newEndpoint;
-        $this->fullEndpointUrl = $this->mantisApiBaseUrl . '/' . $this->endpoint;
+        return $this->makeRequest('POST', 'issues', $options);
     }
 
     /**
@@ -192,29 +213,6 @@ class MantisApi
     public function setFullEndpointUrl($fullEndpointUrl): void
     {
         $this->fullEndpointUrl = $fullEndpointUrl;
-    }
-
-
-    /**
-     * @param String $method
-     * @param String $endpoint
-     * @param array $options
-     * @return bool|string
-     */
-    private function makeRequest(String $method, String $endpoint, array $options = [])
-    {
-        $this->buildUrl($endpoint); //Set the full URL for making the request.
-        curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Asign it to te client
-        curl_setopt($this->httpClient, CURLOPT_CUSTOMREQUEST, $method); //Make http method to post
-        if(isset($options['body'])){
-            curl_setopt($this->httpClient, CURLOPT_POSTFIELDS, $options['body']); //Make http method to post
-        }
-        if(isset($options['headers'])){
-            curl_setopt($this->httpClient, CURLOPT_HTTPHEADER, $options['headers']); // Set auth header
-        }
-        $response = curl_exec($this->httpClient);
-        curl_close($this->httpClient);
-        return $response;
     }
 
 

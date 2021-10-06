@@ -13,8 +13,8 @@ class IssuesController extends Controller
     public function index()
     {
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-        $response = $mantisApi->getAllIssues()->getBody();
-        return $response;
+        $response = $mantisApi->getAllIssues();
+        return response()->json(json_decode($response));
         return DB::table('tickets_convertforms_conversions')->get();
     }
 
@@ -22,7 +22,7 @@ class IssuesController extends Controller
     {
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $response = $mantisApi->getIssueById($issue_id);
-        return $response;
+        return response()->json(json_decode($response));
         return DB::table('tickets_convertforms_conversions')->get();
     }
 
