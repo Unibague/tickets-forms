@@ -37,6 +37,7 @@ class Csv
     public function buildCSV()
     {
         $handle = fopen('php://output', 'w');
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); //Allow UTF-8 encoding
         $this->constructCSVHeader($handle);
         $this->construcCSVRows($handle);
         return $handle;

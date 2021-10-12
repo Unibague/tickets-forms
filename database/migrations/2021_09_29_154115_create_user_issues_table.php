@@ -16,8 +16,9 @@ class CreateUserIssuesTable extends Migration
         Schema::create('user_issues_form', function (Blueprint $table) {
             $table->id();
             $table->string('code_user');
-            $table->string('issue_id');
-            $table->string('conversion_id');
+            $table->string('issue_id')->nullable();
+            $table->string('form_id');
+            $table->string('user_responses');
             $table->timestamps();
         });
     }

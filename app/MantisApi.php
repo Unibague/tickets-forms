@@ -2,7 +2,10 @@
 
 namespace App;
 
-use GuzzleHttp\Client;
+
+use Illuminate\Http\Request;
+use function PHPUnit\Framework\isNull;
+
 
 class MantisApi
 {
@@ -26,6 +29,9 @@ class MantisApi
      * @var
      */
     private $httpClient;
+
+
+    private $createIssueData=[];
 
     /**
      * @param string $mantisBaseUrl
@@ -117,25 +123,26 @@ class MantisApi
      * @param $data
      * @return bool|string
      */
-    public function createIssue($data)
+    public function createIssue(array $request_data, int $user_issues_form_id)
     {
+        $url = 'http://172.19.24.12/tickets-forms/conversions/';
 
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
         $body = [
-            'summary' => 'Objeto',
-            'description' => 'descricion',
+            'summary' =>$request_data['issue_name'] . ' - ' .$request_data['code_user'],
+            'description' => 'Formulario llenado desde el sitio web: ' . $url.$user_issues_form_id,
             'category' => [
-                'name' => 'General'
+                'name' =>$request_data['category'],
             ],
             'project' => [
-                'name' => 'G3'
+                'name' =>$request_data['project']
             ],
             'custom_fields' => [
                 [
                     'field' => ['name' => 'usuario_encuesta'],
-                    'value' => $data['code_user']
+                    'value' =>$request_data['code_user'], //Get user email
                 ],
             ]
         ];
@@ -146,6 +153,7 @@ class MantisApi
         ];
         return $this->makeRequest('POST', 'issues', $options);
     }
+
 
     /**
      * @param int $id

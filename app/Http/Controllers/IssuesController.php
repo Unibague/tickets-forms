@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\MantisApi;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class IssuesController extends Controller
 {
     private $mantisBaseUrl = 'http://172.19.24.12/tickets';
+    private $createIssueData = [];
 
     public function index()
     {
@@ -41,23 +43,68 @@ class IssuesController extends Controller
 
     public function createIssue(Request $request)
     {
-        $data = [
-            'code_user' => $request->input('code_user'),
-            'conversion_id' => $request->input('conversion_id'),
-            'issue_id' => 1
-        ];
+        //First, verify the request.
+        $errors = $this->verifyCreateIssueRequest($request);
+        if (count($errors) > 0) {
+            return response()->json($errors, 400);
+        }
+        //Now that the request its properly made, save the user responses
+        $time = Carbon::now()->toDateTimeString();
+        $user_issues_form_id = DB::table('user_issues_form')
+            ->insertGetId([
+                'code_user' => explode('@', $request->input('code_user'))[0],
+                'form_id' => $this->createIssueData['form_id'],
+                'user_responses' => json_encode($this->createIssueData['answers'],JSON_UNESCAPED_UNICODE),
+                'created_at' => $time,
+                'updated_at' => $time
+            ]);
+
+        //Create Mantis Api Instance create an issue
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-        $issue_id = $mantisApi->createIssue($data);
-        dd($issue_id);
-        return json_decode($issue_id);
+        $issue = $mantisApi->createIssue($this->createIssueData,$user_issues_form_id);
 
-        die();
+        //Conver the issue to object in order to get it's id.
+        $issue_object = json_decode($issue);
+        $issue_id =  $issue_object->issue->id;
+        $affected = DB::table('user_issues_form')
+            ->where('id', $user_issues_form_id)
+            ->update(['issue_id' => $issue_id]);
 
-        $data['issue_id'] = $issue_id;
-        $user_issues_form = DB::table('user_issues_form')
-            ->insert($data);
+        return response('issue with id ' . $issue_id . ' created successfully.', 200);
 
     }
+
+    private function verifyCreateIssueRequest(Request $request)
+    {
+        $code_user = $request->input('code_user');
+        $errors = [];
+        if (!$code_user) {
+            $errors[] = 'No code_user provided';
+        }
+        $project = $request->input('project');
+        if (!$project) {
+            $errors[] = 'No project provided';
+        }
+        $category = $request->input('category');
+        if (!$category) {
+            $errors[] = 'No category provided';
+        }
+        $issue_name = $request->input('issue_name');
+        if (!$issue_name) {
+            $errors[] = 'No issue_name provided';
+        }
+
+        $this->createIssueData = [
+            'code_user' => explode('@', $code_user)[0],
+            'project' => $project,
+            'category' => $category,
+            'issue_name' => $issue_name,
+            'answers' => $request->input('answers'),
+            'form_id' => $request->input('form_id')
+        ];
+        return $errors;
+    }
+
 
     public function createById(Request $request)
     {

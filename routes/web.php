@@ -18,8 +18,8 @@ $router->get('/', function () use ($router) {
 });
 //$router->get('/issues', 'IssuesController@index');
 
-$router->get('/issues', 'FormController@index');
-$router->get('/issues/prueba', 'IssuesController@createIssue');
+$router->get('/issues', 'IssuesController@index');
+$router->post('/issues', 'IssuesController@createIssue');
 $router->get('/issues/{issue_id}', 'IssuesController@show');
 $router->get('/issues/user/{code_user}', 'IssuesController@getUserIssues');
 

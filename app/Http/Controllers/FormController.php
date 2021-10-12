@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class FormController extends Controller
 {
     private $mantisBaseUrl = 'http://172.19.24.12/tickets';
-    private $tableName = 'l88kc_convertforms_conversions';
+    private $tableName = 'user_issues_form';
 
     public function index()
     {
@@ -19,7 +19,7 @@ class FormController extends Controller
     {
 
         $conversion = $this->show($conversion_id);
-        $params = json_decode($conversion->params, true);
+        $params = json_decode($conversion->user_responses, true);
         //dd($params);
         $csv = new Csv('Resultado de encuenta', $params, ';');
         $file = $csv->buildCSV();
