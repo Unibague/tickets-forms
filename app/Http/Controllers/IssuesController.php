@@ -43,6 +43,7 @@ class IssuesController extends Controller
 
     public function createIssue(Request $request)
     {
+
         //First, verify the request.
         $errors = $this->verifyCreateIssueRequest($request);
         if (count($errors) > 0) {
@@ -63,13 +64,15 @@ class IssuesController extends Controller
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $issue = $mantisApi->createIssue($this->createIssueData,$user_issues_form_id);
 
-        //Conver the issue to object in order to get it's id.
+        //Convert the issue to object in order to get it's id.
         $issue_object = json_decode($issue);
         $issue_id =  $issue_object->issue->id;
-        $affected = DB::table('user_issues_form')
+        DB::table('user_issues_form')
             ->where('id', $user_issues_form_id)
             ->update(['issue_id' => $issue_id]);
 
+        //Now, lets parse all the questions and create a note with that information.
+        $mantisApi->AddNoteToIssue($request->input('questions'),$request->input('answers'),$issue_id);
         return response('issue with id ' . $issue_id . ' created successfully.', 200);
 
     }

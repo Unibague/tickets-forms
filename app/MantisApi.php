@@ -154,6 +154,25 @@ class MantisApi
         return $this->makeRequest('POST', 'issues', $options);
     }
 
+    public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
+    {
+        $url = 'http://172.19.24.12/tickets-forms/conversions/';
+        $questionsAsText = $this->getQuestionsAsText($questions,$answers);
+        $this->buildHttpClient();
+        $headers = ['Authorization: ' . $this->authorizationToken,
+            'Content-Type: ' . 'application/json'];
+        $body = [
+            'text' => $questionsAsText,
+        ];
+        $rawBody = json_encode($body);
+        $options = [
+            'headers' => $headers,
+            'body' => $rawBody
+        ];
+        return $this->makeRequest('POST', 'issues/'.$issue_id.'/notes', $options);
+    }
+
+
 
     /**
      * @param int $id
@@ -221,6 +240,23 @@ class MantisApi
     public function setFullEndpointUrl($fullEndpointUrl): void
     {
         $this->fullEndpointUrl = $fullEndpointUrl;
+    }
+
+    private function getQuestionsAsText(array $questions,array $answers) : String
+    {
+        $text = "Respuestas proporcionadas por el usuario en el formulario: \n";
+        foreach($questions as $question => $type){
+            if($type === 'FILE_UPLOAD'){
+                $file_counter = 1;
+                foreach($answers[$question] as $file_uploaded){
+                    $text.=$question." ".$file_counter.": https://drive.google.com/file/d/".$file_uploaded."\n";
+                    $file_counter++;
+                }
+            } else {
+                $text.=$question.": ".$answers[$question]."\n";
+            }
+        }
+        return $text;
     }
 
 
