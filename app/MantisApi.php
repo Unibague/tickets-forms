@@ -3,10 +3,6 @@
 namespace App;
 
 
-use Illuminate\Http\Request;
-use function PHPUnit\Framework\isNull;
-
-
 class MantisApi
 {
     /**
@@ -31,7 +27,7 @@ class MantisApi
     private $httpClient;
 
 
-    private $createIssueData=[];
+    private $createIssueData = [];
 
     /**
      * @param string $mantisBaseUrl
@@ -131,18 +127,18 @@ class MantisApi
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
         $body = [
-            'summary' =>$request_data['issue_name'] . ' - ' .$request_data['code_user'],
-            'description' => 'Formulario llenado desde el sitio web: ' . $url.$user_issues_form_id,
+            'summary' => $request_data['issue_name'] . ' - ' . $request_data['code_user'],
+            'description' => 'Formulario llenado desde el sitio web: ' . $url . $user_issues_form_id,
             'category' => [
-                'name' =>$request_data['category'],
+                'name' => $request_data['category'],
             ],
             'project' => [
-                'name' =>$request_data['project']
+                'name' => $request_data['project']
             ],
             'custom_fields' => [
                 [
                     'field' => ['name' => 'usuario_encuesta'],
-                    'value' =>$request_data['code_user'], //Get user email
+                    'value' => $request_data['code_user'], //Get user email
                 ],
             ]
         ];
@@ -157,7 +153,7 @@ class MantisApi
     public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
     {
         $url = 'http://172.19.24.12/tickets-forms/conversions/';
-        $questionsAsText = $this->getQuestionsAsText($questions,$answers);
+        $questionsAsText = $this->getQuestionsAsText($questions, $answers);
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
@@ -169,16 +165,45 @@ class MantisApi
             'headers' => $headers,
             'body' => $rawBody
         ];
-        return $this->makeRequest('POST', 'issues/'.$issue_id.'/notes', $options);
+        return $this->makeRequest('POST', 'issues/' . $issue_id . '/notes', $options);
     }
 
+    private function getQuestionsAsText(array $questions, array $answers): string
+    {
+        $text = "Respuestas proporcionadas por el usuario en el formulario: \n";
+        foreach ($questions as $question => $type) {
 
+            //Fist, verify that the user answer the particular question
+            if (isset($answers[$question])) {
+
+                //Check if is file upload, in order to parse all the provided answers
+                if ($type === 'FILE_UPLOAD') {
+                    $file_counter = 1;
+                    foreach ($answers[$question] as $file_uploaded) {
+                        $text .= $question . " " . $file_counter . ": https://drive.google.com/file/d/" . $file_uploaded . "\n";
+                        $file_counter++;
+                    }
+                } //If not, just print it as text.
+                else {
+                    $text .= $question . ": " . $answers[$question] . "\n";
+                }
+            }
+            //If the user didnt answer, there is a possibility that forms api didnt send the answer in the arry, so lets
+            //leave it blank
+            else {
+                $text .= $question . ": \n";
+            }
+
+
+        }
+        return $text;
+    }
 
     /**
      * @param int $id
      * @return bool|string
      */
-    public function getIssueById(int $id)
+    public function getIssueById($id)
     {
         $this->buildHttpClient();
         $response = $this->makeRequest('GET', "issues/{$id}");
@@ -240,23 +265,6 @@ class MantisApi
     public function setFullEndpointUrl($fullEndpointUrl): void
     {
         $this->fullEndpointUrl = $fullEndpointUrl;
-    }
-
-    private function getQuestionsAsText(array $questions,array $answers) : String
-    {
-        $text = "Respuestas proporcionadas por el usuario en el formulario: \n";
-        foreach($questions as $question => $type){
-            if($type === 'FILE_UPLOAD'){
-                $file_counter = 1;
-                foreach($answers[$question] as $file_uploaded){
-                    $text.=$question." ".$file_counter.": https://drive.google.com/file/d/".$file_uploaded."\n";
-                    $file_counter++;
-                }
-            } else {
-                $text.=$question.": ".$answers[$question]."\n";
-            }
-        }
-        return $text;
     }
 
 
