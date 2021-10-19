@@ -6,30 +6,48 @@ class Csv
 {
     private array $columnNames;
     private array $values;
+    private array $questions;
     private string $name;
 
-    public function __construct(string $name, array $content, string $separator = ';')
+    public function __construct(string $name, array $answers, array $questions, string $separator = ';')
     {
-        $this->name = $name;
-        $this->columnNames = $this->getColumns($content);
-        $this->values = $this->getValues($content);
-
+        $this->columnNames = $this->getColumns($questions);
+        $this->questions = $questions;
+        $this->values = $this->getValues($answers);
     }
 
-    private function getColumns(array $content): array
+    private function getColumns(array $questions): array
     {
         $columns = [];
-        foreach ($content as $column => $value) {
-            $columns[] = $column;
+        foreach ($questions as $questionName => $type) {
+            $columns[] = $questionName;
         }
         return $columns;
     }
 
-    private function getValues(array $content): array
+    private function getValues(array $answers): array
     {
         $values = [];
-        foreach ($content as $column => $value) {
-            $values[] = $value;
+        foreach ($this->questions as $questionName => $questionType) {
+            if (isset($answers[$questionName])) {
+                if (is_array($answers[$questionName])) {
+                    $final_formatted_answer = '';
+                    if ($questionType === 'FILE_UPLOAD') {
+                        foreach ($answers[$questionName] as $individualAnswer) {
+                            $final_formatted_answer .= "https://drive.google.com/file/d/" . $individualAnswer . ",";
+                        }
+                    } else {
+                        foreach ($answers[$questionName] as $individualAnswer) {
+                            $final_formatted_answer .= $individualAnswer . ",";
+                        }
+                    }
+                    $values[] = $final_formatted_answer;
+                } else {
+                    $values[] = $answers[$questionName];
+                }
+            } else {
+                $values[] = 'Sin respuesta por parte del usuario';
+            }
         }
         return $values;
     }
@@ -37,7 +55,7 @@ class Csv
     public function buildCSV()
     {
         $handle = fopen('php://output', 'w');
-        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); //Allow UTF-8 encoding
+        fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); //Allow UTF-8 encoding
         $this->constructCSVHeader($handle);
         $this->construcCSVRows($handle);
         return $handle;
@@ -56,6 +74,7 @@ class Csv
 
             if (is_array($value)) {
                 $finalValue = '';
+
                 foreach ($value as $arrayItem) {
                     $finalValue .= $arrayItem . ',';
                 }

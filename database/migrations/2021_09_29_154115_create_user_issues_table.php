@@ -18,6 +18,7 @@ class CreateUserIssuesTable extends Migration
             $table->string('code_user');
             $table->string('issue_id')->nullable();
             $table->string('form_id');
+            $table->text('questions');
             $table->text('user_responses');
             $table->timestamps();
         });

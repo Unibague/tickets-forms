@@ -177,10 +177,17 @@ class MantisApi
             if (isset($answers[$question])) {
 
                 //Check if is file upload, in order to parse all the provided answers
-                if ($type === 'FILE_UPLOAD') {
+                if (is_array($answers[$question])) {
+
                     $file_counter = 1;
-                    foreach ($answers[$question] as $file_uploaded) {
-                        $text .= $question . " " . $file_counter . ": https://drive.google.com/file/d/" . $file_uploaded . "\n";
+                    foreach ($answers[$question] as $part_of_answer) {
+
+                        if ($type === 'FILE_UPLOAD') {
+                            $text .= $question . " " . $file_counter . ": https://drive.google.com/file/d/" . $part_of_answer . "\n";
+                        } else {
+                            $text .= $question . " " . $file_counter . ": " . $part_of_answer . "\n";
+
+                        }
                         $file_counter++;
                     }
                 } //If not, just print it as text.
@@ -193,7 +200,6 @@ class MantisApi
             else {
                 $text .= $question . ": \n";
             }
-
 
         }
         return $text;

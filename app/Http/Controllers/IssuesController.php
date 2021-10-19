@@ -43,7 +43,6 @@ class IssuesController extends Controller
 
     public function createIssue(Request $request)
     {
-
         //First, verify the request.
         $errors = $this->verifyCreateIssueRequest($request);
         if (count($errors) > 0) {
@@ -56,6 +55,7 @@ class IssuesController extends Controller
                 'code_user' => explode('@', $request->input('code_user'))[0],
                 'form_id' => $this->createIssueData['form_id'],
                 'user_responses' => json_encode($this->createIssueData['answers'],JSON_UNESCAPED_UNICODE),
+                'questions' => json_encode($this->createIssueData['questions'],JSON_UNESCAPED_UNICODE),
                 'created_at' => $time,
                 'updated_at' => $time
             ]);
@@ -103,6 +103,7 @@ class IssuesController extends Controller
             'category' => $category,
             'issue_name' => $issue_name,
             'answers' => $request->input('answers'),
+            'questions' => $request->input('questions'),
             'form_id' => $request->input('form_id')
         ];
         return $errors;

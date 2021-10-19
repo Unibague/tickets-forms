@@ -17,14 +17,13 @@ class FormController extends Controller
 
     public function generateResults(int $conversion_id)
     {
-
         $conversion = $this->show($conversion_id);
-        $params = json_decode($conversion->user_responses, true);
-        //dd($params);
-        $csv = new Csv('Resultado de encuenta', $params, ';');
+        $answers = json_decode($conversion->user_responses, true);
+        $questions = json_decode($conversion->questions, true);
+        $csv = new Csv('Resultado de encuesta', $answers, $questions, ';');
         $file = $csv->buildCSV();
         header('Content-Type: text/csv');
-        header('Content-Disposition: attachment;filename=' . 'hola' );
+        header('Content-Disposition: attachment;filename=' . 'Respuestas de cuestionario' );
         if(fclose($file)){
             die();
         }
