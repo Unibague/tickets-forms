@@ -29,7 +29,7 @@ class Csv
     {
         $values = [];
         foreach ($this->questions as $questionName => $questionType) {
-            if (isset($answers[$questionName])) {
+            if (isset($answers[$questionName]) && $answers[$questionName] !== '') {
                 if (is_array($answers[$questionName])) {
                     $final_formatted_answer = '';
                     if ($questionType === 'FILE_UPLOAD') {

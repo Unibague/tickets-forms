@@ -121,25 +121,19 @@ class MantisApi
      */
     public function createIssue(array $request_data, int $user_issues_form_id)
     {
-        $url = 'http://172.19.24.12/tickets-forms/conversions/';
+        $url = 'https://tickets.unibague.edu.co/tickets-forms/conversions/';
 
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
         $body = [
-            'summary' => $request_data['issue_name'] . ' - ' . $request_data['code_user'],
+            'summary' => $request_data['issue_name'] . ' - ' . $request_data['code_user'] . ' - ' . $request_data['descriptive_question'],
             'description' => 'Formulario llenado desde el sitio web: ' . $url . $user_issues_form_id,
             'category' => [
                 'name' => $request_data['category'],
             ],
             'project' => [
                 'name' => $request_data['project']
-            ],
-            'custom_fields' => [
-                [
-                    'field' => ['name' => 'usuario_encuesta'],
-                    'value' => $request_data['code_user'], //Get user email
-                ],
             ]
         ];
         $rawBody = json_encode($body);
@@ -150,9 +144,25 @@ class MantisApi
         return $this->makeRequest('POST', 'issues', $options);
     }
 
+    public function addUserNoteToIssue(string $userComment, int $issue_id)
+    {
+        $questionsAsText = $userComment;
+        $this->buildHttpClient();
+        $headers = ['Authorization: ' . $this->authorizationToken,
+            'Content-Type: ' . 'application/json'];
+        $body = [
+            'text' => $questionsAsText,
+        ];
+        $rawBody = json_encode($body);
+        $options = [
+            'headers' => $headers,
+            'body' => $rawBody
+        ];
+        return $this->makeRequest('POST', 'issues/' . $issue_id . '/notes', $options);
+    }
+
     public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
     {
-        $url = 'http://172.19.24.12/tickets-forms/conversions/';
         $questionsAsText = $this->getQuestionsAsText($questions, $answers);
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
