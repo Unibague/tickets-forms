@@ -130,7 +130,7 @@ class MantisApi
             'summary' => $request_data['issue_name'] . ' - ' . $request_data['code_user'] . ' - ' . $request_data['descriptive_question'],
             'description' => 'Formulario llenado desde el sitio web: ' . $url . $user_issues_form_id,
             'category' => [
-                'name' => $request_data['category'],
+                'name' => 'General',
             ],
             'project' => [
                 'name' => $request_data['project']
@@ -142,6 +142,26 @@ class MantisApi
             'body' => $rawBody
         ];
         return $this->makeRequest('POST', 'issues', $options);
+    }
+
+    public function changeIssueCategory(int $issue_id, string $category_name)
+    {
+
+        $this->buildHttpClient();
+        $headers = ['Authorization: ' . $this->authorizationToken,
+            'Content-Type: ' . 'application/json'];
+        $body = [
+            'category' => [
+                'name' => $category_name
+            ]
+        ];
+
+        $rawBody = json_encode($body);
+        $options = [
+            'headers' => $headers,
+            'body' => $rawBody
+        ];
+        return $this->makeRequest('PATCH', 'issues/' . $issue_id, $options);
     }
 
     public function addUserNoteToIssue(string $userComment, int $issue_id)

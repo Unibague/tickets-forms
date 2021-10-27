@@ -30,6 +30,7 @@ class IssuesController extends Controller
 
     public function getUserIssues(string $code_user)
     {
+
         $user_issues = DB::table('user_issues_form')
             ->where('code_user', '=', $code_user)
             ->get();
@@ -80,7 +81,7 @@ class IssuesController extends Controller
         $time = Carbon::now()->toDateTimeString();
         $user_issues_form_id = DB::table('user_issues_form')
             ->insertGetId([
-                'code_user' => explode('@', $request->input('code_user'))[0],
+                'code_user' => $request->input('code_user'),
                 'form_id' => $this->createIssueData['form_id'],
                 'user_responses' => json_encode($this->createIssueData['answers'], JSON_UNESCAPED_UNICODE),
                 'questions' => json_encode($this->createIssueData['questions'], JSON_UNESCAPED_UNICODE),
@@ -91,9 +92,14 @@ class IssuesController extends Controller
         //Create Mantis Api Instance create an issue
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
-        //Convert the issue to object in order to get it's id.
         $issue_object = json_decode($issue);
         $issue_id = $issue_object->issue->id;
+
+        //Change category to the provided by the user
+        $mantisApi->changeIssueCategory($issue_id, $this->createIssueData['category']);
+
+        //Convert the issue to object in order to get it's id.
+
         DB::table('user_issues_form')
             ->where('id', $user_issues_form_id)
             ->update(['issue_id' => $issue_id]);
@@ -127,7 +133,7 @@ class IssuesController extends Controller
         $descriptive_question = $request->input('answers')[$request->input('descriptive_question')] ?? '';
 
         $this->createIssueData = [
-            'code_user' => explode('@', $code_user)[0],
+            'code_user' => $code_user,
             'project' => $project,
             'category' => $category,
             'issue_name' => $issue_name,
