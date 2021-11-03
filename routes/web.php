@@ -1,5 +1,6 @@
 <?php
 
+
 /** @var \Laravel\Lumen\Routing\Router $router */
 
 /*
@@ -14,7 +15,7 @@
 */
 
 $router->get('/', function () use ($router) {
-    return 'hey';
+    \Illuminate\Support\Facades\Mail::to('juan.ospina@unibague.edu.co')->send(new \App\Mail\userMessageNotification(150, 'Solucionado, claro que si'));
 });
 //$router->get('/issues', 'IssuesController@index');
 
@@ -26,7 +27,10 @@ $router->post('/issues/{issue_id}/notes', 'IssuesController@addUserNoteToIssue')
 
 /*RUTAS PARA FORMULARIOS*/
 
-//$router->get('/conversions/{conversion_id}', 'FormController@generateResults');
 $router->get('/conversions/{conversion_id}', 'FormController@generateResults');
+
+// Enviar comentario a el usuario
+$router->post('/comments/issue/{issue_id}/', 'IssuesController@sendMessageToUserByEmail');
+$router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUserForm');
 
 

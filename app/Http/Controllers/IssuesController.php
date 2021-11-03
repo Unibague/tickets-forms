@@ -152,4 +152,36 @@ class IssuesController extends Controller
         return response()->json(['message' => 'Estimado usuario, su comentario añadido exitosamente'], 200);
     }
 
+
+    public function sendMessageToUserForm(int $issue_id)
+    {
+        return view('sendMessageToUser');
+    }
+
+    public function sendMessageToUserByEmail(Request $request, int $issue_id)
+    {
+
+        $user_issues = DB::table('user_issues_form')
+            ->where('issue_id', '=', $issue_id)
+            ->first();
+
+        //If the issue it's not found, return a 404 error
+        if (!$user_issues) {
+            return response()->json([], 404);
+        }
+        //Get the user email.
+        $user_email = $user_issues->code_user;
+        $message = $request->input('message');
+        //Connect to mantis API to add the note.
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi->addUserNoteToIssue('Mensaje añadido por el técnico y enviado al usuario via correo electrónico: ' . $message, $issue_id);
+
+        //Send email to user
+        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));
+
+        return response()->json(['message' => 'Estimado usuario, su comentario añadido exitosamente'], 200);
+
+
+    }
+
 }

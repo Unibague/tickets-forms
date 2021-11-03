@@ -183,12 +183,13 @@ class MantisApi
 
     public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
     {
+        $url_to_comment = "https://tickets.unibague.edu.co/tickets-forms/comments/issue/{$issue_id}/new";
         $questionsAsText = $this->getQuestionsAsText($questions, $answers);
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
         $body = [
-            'text' => $questionsAsText,
+            'text' => $questionsAsText . "\n Url para notificar comentarios al usuario: {$url_to_comment}",
         ];
         $rawBody = json_encode($body);
         $options = [
