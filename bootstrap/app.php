@@ -33,7 +33,7 @@ $app->middleware([
 
 
 //Configure mail
-
+$app->register(Irazasyed\Larasupport\Providers\ArtisanServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
 $app->configure('mail');
 

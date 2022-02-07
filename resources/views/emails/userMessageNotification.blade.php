@@ -1,5 +1,5 @@
 @component('mail::message')
-    # Actualización de su Ticket con ID \#{{$ticket_id}}
+    # Actualización de su solicitud con ID \#{{$ticket_id}}
 
     Apreciado usuario.
 
