@@ -32,7 +32,7 @@ class userMessageNotification extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.userMessageNotification')->subject('Notificacion de mensaje Mantis')
+        return $this->markdown('emails.userMessageNotification')->subject('Notificacion del Centro de Servicios - Universidad de Ibagué')
             ->with(['ticket_id' => $this->ticket_id, 'message' => $this->message]);
     }
 }
