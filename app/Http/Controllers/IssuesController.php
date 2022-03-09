@@ -32,7 +32,7 @@ class IssuesController extends Controller
     {
         $user_issues = DB::table('user_issues_form')
             ->where('code_user', '=', $code_user)
-            ->get();
+            ->latest()->get();
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $full_response = [];
         //Receive all the user issue's as object
