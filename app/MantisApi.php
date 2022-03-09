@@ -228,7 +228,7 @@ class MantisApi
         $questionsAsText = $this->getQuestionsAsText($questions, $answers);
         $issueBody = "Respuestas proporcionadas por el usuario en el formulario: \n" .
             $questionsAsText . "\nURL para notificar comentarios al usuario: {$url_to_comment}"
-            . "\nURL para solicitar traslado de solicitud de servicio: " . $issueTransferUrl;
+            . "\nURL para solicitar traslado del servicio a otra dependencia: " . $issueTransferUrl;
 
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
