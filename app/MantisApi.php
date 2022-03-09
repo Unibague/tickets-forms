@@ -222,7 +222,7 @@ class MantisApi
      */
     public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
     {
-
+        //lets see
         $issueTransferUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeZYKy3Ich2_OgHiDyy5nA9SJJpvUmBMZl4rYtid7_7p6BkQQ/viewform?entry.2109776235=' . $issue_id;
         $url_to_comment = "https://tickets.unibague.edu.co/tickets-forms/comments/issue/{$issue_id}/new";
         $questionsAsText = $this->getQuestionsAsText($questions, $answers);
