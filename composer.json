@@ -9,7 +9,7 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": "7.4",
+        "php": ">=7.4",
         "ext-curl": "*",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.0",

@@ -17,7 +17,6 @@ class IssuesController extends Controller
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $response = $mantisApi->getAllIssues();
         return response()->json(json_decode($response));
-        return DB::table('tickets_convertforms_conversions')->get();
     }
 
     public function show(int $issue_id)
@@ -30,7 +29,6 @@ class IssuesController extends Controller
 
     public function getUserIssues(string $code_user)
     {
-
         $user_issues = DB::table('user_issues_form')
             ->where('code_user', '=', $code_user)
             ->get();
