@@ -16,12 +16,14 @@ class userMessageNotification extends Mailable
      *
      * @return void
      */
-    protected int $ticket_id;
+    protected int $issueId;
+    protected string $issueName;
     protected string $message;
 
-    public function __construct(int $ticket_id, string $message)
+    public function __construct(int $issueId, string $message)
     {
-        $this->ticket_id = $ticket_id;
+        $this->issueId = $issueId;
+        //$this->issueName = $issueName;
         $this->message = $message;
     }
 
@@ -32,7 +34,7 @@ class userMessageNotification extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.userMessageNotification')->subject('Notificacion de mensaje Mantis')
-            ->with(['ticket_id' => $this->ticket_id, 'message' => $this->message]);
+        return $this->markdown('emails.userMessageNotification')->subject('Notificación de mensaje del Centro de Servicios')
+            ->with(['issueId' => $this->issueId, 'message' => $this->message]);
     }
 }

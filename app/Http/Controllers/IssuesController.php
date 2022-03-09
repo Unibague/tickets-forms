@@ -6,6 +6,7 @@ use App\MantisApi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class IssuesController extends Controller
 {
@@ -17,7 +18,6 @@ class IssuesController extends Controller
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $response = $mantisApi->getAllIssues();
         return response()->json(json_decode($response));
-        return DB::table('tickets_convertforms_conversions')->get();
     }
 
     public function show(int $issue_id)
@@ -30,7 +30,6 @@ class IssuesController extends Controller
 
     public function getUserIssues(string $code_user)
     {
-
         $user_issues = DB::table('user_issues_form')
             ->where('code_user', '=', $code_user)
             ->get();
@@ -145,20 +144,24 @@ class IssuesController extends Controller
         return $errors;
     }
 
-    public function addUserNoteToIssue($issue_id, Request $request)
+    public function addUserNoteToIssue($issue_id, Request $request): \Illuminate\Http\JsonResponse
     {
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-        $issue = $mantisApi->addUserNoteToIssue('Comentario ingresado por el usuario a través del sitio web: ' . $request->input('user_comment'), $issue_id);
+
+        $questions = $request->input('questions');
+        $answers = $request->input('answers');
+        $code_user = $request->input('code_user');
+
+        $mantisApi->addUserNoteToIssue($questions, $answers, $code_user, $issue_id);
         return response()->json(['message' => 'Estimado usuario, su comentario añadido exitosamente'], 200);
     }
-
 
     public function sendMessageToUserForm(int $issue_id)
     {
         return view('sendMessageToUser');
     }
 
-    public function sendMessageToUserByEmail(Request $request, int $issue_id)
+    public function sendMessageToUserByEmail(Request $request, $issue_id)
     {
 
         $user_issues = DB::table('user_issues_form')
@@ -174,7 +177,7 @@ class IssuesController extends Controller
         $message = $request->input('message');
         //Connect to mantis API to add the note.
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-        $mantisApi->addUserNoteToIssue('Mensaje añadido por el técnico y enviado al usuario via correo electrónico: ' . $message, $issue_id);
+        $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por el técnico y enviado al usuario via correo electrónico: ' . $message);
 
         //Send email to user
         \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));

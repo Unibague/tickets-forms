@@ -3,6 +3,9 @@
 namespace App;
 
 
+/**
+ *
+ */
 class MantisApi
 {
     /**
@@ -27,6 +30,9 @@ class MantisApi
     private $httpClient;
 
 
+    /**
+     * @var array
+     */
     private $createIssueData = [];
 
     /**
@@ -144,6 +150,11 @@ class MantisApi
         return $this->makeRequest('POST', 'issues', $options);
     }
 
+    /**
+     * @param int $issue_id
+     * @param string $category_name
+     * @return bool|string
+     */
     public function changeIssueCategory(int $issue_id, string $category_name)
     {
 
@@ -164,14 +175,36 @@ class MantisApi
         return $this->makeRequest('PATCH', 'issues/' . $issue_id, $options);
     }
 
-    public function addUserNoteToIssue(string $userComment, int $issue_id)
+    /**
+     * @param array $questions
+     * @param array $answers
+     * @param string $user
+     * @param int $issue_id
+     * @return bool|string
+     */
+    public function addUserNoteToIssue(array $questions, array $answers, string $user, int $issue_id)
     {
-        $questionsAsText = $userComment;
+        $questionsAsText = $this->getQuestionsAsText($questions, $answers);
+        $finalText = "Respuestas proporcionadas por el usuario " . $user . " en el formulario de comentarios: \r"
+            . $questionsAsText;
+        //Make the request
+        return $this->postIssueNote($issue_id, $finalText);
+    }
+
+
+    /**
+     * @param String $issue_id
+     * @param String $text
+     * @return bool|string
+     */
+    public function postIssueNote(string $issue_id, string $text)
+    {
+
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
         $body = [
-            'text' => $questionsAsText,
+            'text' => $text,
         ];
         $rawBody = json_encode($body);
         $options = [
@@ -181,15 +214,27 @@ class MantisApi
         return $this->makeRequest('POST', 'issues/' . $issue_id . '/notes', $options);
     }
 
+    /**
+     * @param array $questions
+     * @param array $answers
+     * @param int $issue_id
+     * @return bool|string
+     */
     public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
     {
+
+        $issueTransferUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeZYKy3Ich2_OgHiDyy5nA9SJJpvUmBMZl4rYtid7_7p6BkQQ/viewform?entry.2109776235=' . $issue_id;
         $url_to_comment = "https://tickets.unibague.edu.co/tickets-forms/comments/issue/{$issue_id}/new";
         $questionsAsText = $this->getQuestionsAsText($questions, $answers);
+        $issueBody = "Respuestas proporcionadas por el usuario en el formulario: \n" .
+            $questionsAsText . "\nURL para notificar comentarios al usuario: {$url_to_comment}"
+            . "\nURL para solicitar traslado de solicitud de servicio: " . $issueTransferUrl;
+
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
         $body = [
-            'text' => $questionsAsText . "\n Url para notificar comentarios al usuario: {$url_to_comment}",
+            'text' => $issueBody,
         ];
         $rawBody = json_encode($body);
         $options = [
@@ -199,9 +244,14 @@ class MantisApi
         return $this->makeRequest('POST', 'issues/' . $issue_id . '/notes', $options);
     }
 
+    /**
+     * @param array $questions
+     * @param array $answers
+     * @return string
+     */
     private function getQuestionsAsText(array $questions, array $answers): string
     {
-        $text = "Respuestas proporcionadas por el usuario en el formulario: \n";
+        $text = '';
         foreach ($questions as $question => $type) {
 
             //Fist, verify that the user answer the particular question

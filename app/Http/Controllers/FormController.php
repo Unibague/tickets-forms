@@ -7,13 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class FormController extends Controller
 {
-    private $mantisBaseUrl = 'http://172.19.24.12/tickets';
-    private $tableName = 'user_issues_form';
-
-    public function index()
-    {
-
-    }
+    private string $tableName = 'user_issues_form';
 
     public function generateResults(int $conversion_id)
     {
@@ -23,7 +17,7 @@ class FormController extends Controller
         $csv = new Csv('Resultado de encuesta', $answers, $questions, ';');
         $file = $csv->buildCSV();
         header('Content-Type: text/csv');
-        header('Content-Disposition: attachment;filename=' . 'Respuestas de cuestionario' );
+        header('Content-Disposition: attachment;filename=' . 'Respuestas de cuestionario.csv' );
         if(fclose($file)){
             die();
         }

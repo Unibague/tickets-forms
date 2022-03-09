@@ -1,9 +1,9 @@
 @component('mail::message')
-    # Actualización de su solicitud con ID \#{{$ticket_id}}
+    # Actualización de su solicitud con ID \#{{$issueId}}
 
     Apreciado usuario.
 
-    Se ha realizado una actualización en su ticket. El mensaje que ha suministrado el técnico encargado de la solución de su requerimiento es el siguiente:
+    Se ha realizado una actualización en su solicitud de servicio. El mensaje que ha suministrado el técnico encargado de la solución de su requerimiento es el siguiente:
 
     "{{$message}}"
 

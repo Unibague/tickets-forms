@@ -3,26 +3,18 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
-/*
-|--------------------------------------------------------------------------
-| Application Routes
-|---------------------------------------------------------------------getUserIssues-----
-|
-| Here is where you can register all of the routes for an application.
-| It is a breeze. Simply tell Lumen the URIs it should respond to
-| and give it the Closure to call when that URI is requested.
-|
-*/
-
 $router->get('/', function () use ($router) {
-    \Illuminate\Support\Facades\Mail::to('juan.ospina@unibague.edu.co')->send(new \App\Mail\userMessageNotification(150, 'Solucionado, claro que si'));
+    return 'servicios ;)';
 });
-//$router->get('/issues', 'IssuesController@index');
-
+//All issues
 $router->get('/issues', 'IssuesController@index');
+//Create issue
 $router->post('/issues', 'IssuesController@createIssue');
+//Get specific issue
 $router->get('/issues/{issue_id}', 'IssuesController@show');
+//Get user issues
 $router->get('/issues/user/{code_user}', 'IssuesController@getUserIssues');
+//Add USER note to issue
 $router->post('/issues/{issue_id}/notes', 'IssuesController@addUserNoteToIssue');
 
 /*RUTAS PARA FORMULARIOS*/
