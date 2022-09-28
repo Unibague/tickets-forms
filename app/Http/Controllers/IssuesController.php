@@ -32,17 +32,16 @@ class IssuesController extends Controller
     {
         $user_issues = DB::table('user_issues_form')
             ->where('code_user', '=', $code_user)
+            ->whereNotNull('issue_id')
             ->latest()->get();
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
         $full_response = [];
         //Receive all the user issue's as object
         foreach ($user_issues as $user_issue) {
             $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
-
             if (!isset($mantisIssue['code'])) { //check if has error code, if not ...
                 $full_response[] = $mantisIssue['issues'][0];
             }
-
         }
         //Let's format in the correct way, for not showing unecessary fields.
         $final_response = [];
@@ -112,6 +111,7 @@ class IssuesController extends Controller
     private function verifyCreateIssueRequest(Request $request)
     {
         $code_user = $request->input('code_user');
+
         $errors = [];
         if (!$code_user) {
             $errors[] = 'No code_user provided';
@@ -186,5 +186,4 @@ class IssuesController extends Controller
 
 
     }
-
 }
