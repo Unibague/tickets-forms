@@ -80,10 +80,10 @@
 
     <div class="comment-box">
         <h3 style="text-align: center; color: #4e4e4e">
-            Enviar un mensaje a el usuario
+            Enviar un mensaje al usuario
         </h3>
         <p style="text-align: justify">
-            Por favor, ingrese el mensaje que desea comunicar a el usuario. Este será enviado automáticamente a la
+            Por favor, ingrese el mensaje que desea comunicar al usuario. Este será enviado automáticamente a la
             dirección de correo electrónico del usuario que solicitó el servicio. Adicionalmente se enviará una nota
             con el mensaje proporcionado.
         </p>
