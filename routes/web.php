@@ -8,12 +8,15 @@ $router->get('/', function () use ($router) {
 });
 //All issues
 $router->get('/issues', 'IssuesController@index');
+
 //Create issue
 $router->post('/issues', 'IssuesController@createIssue');
 //Get specific issue
 $router->get('/issues/{issue_id}', 'IssuesController@show');
 //Get user issues
 $router->get('/issues/user/{code_user}', 'IssuesController@getUserIssues');
+
+$router->get('/issues/user/{code_user}/notClosed', 'IssuesController@getUserIssuesNotClosed');
 //Add USER note to issue
 $router->post('/issues/{issue_id}/notes', 'IssuesController@addUserNoteToIssue');
 
@@ -21,7 +24,7 @@ $router->post('/issues/{issue_id}/notes', 'IssuesController@addUserNoteToIssue')
 
 $router->get('/conversions/{conversion_id}', 'FormController@generateResults');
 
-// Enviar comentario a el usuario
+// Enviar comentario al usuario
 $router->post('/comments/issue/{issue_id}/', 'IssuesController@sendMessageToUserByEmail');
 $router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUserForm');
 
