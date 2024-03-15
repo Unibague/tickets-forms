@@ -90,7 +90,7 @@ class IssuesController extends Controller
 
 
             $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
-            dd($mantisIssue['issues'][0]);
+            dd($mantisIssue['issues']);
             if (!isset($mantisIssue['code'])) { //check if has error code, if not ...
                 $full_response[] = $mantisIssue['issues'][0];
             }
