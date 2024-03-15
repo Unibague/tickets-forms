@@ -63,14 +63,6 @@ class MantisApi
         return $response;
     }
 
-    public function getAllClosedIssues($user_code)
-    {
-        $this->buildHttpClient();
-        $response = $this->makeRequest('GET', 'issues/filter_id=unassigned');
-        return $response;
-    }
-
-
     /**
      *
      */

@@ -22,14 +22,14 @@ class IssuesController extends Controller
 
     public function index()
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UnXvlC3OmMnJ_B_vcJwLxdn4lW1On3uL');
         $response = $mantisApi->getAllIssues();
         return response()->json(json_decode($response));
     }
 
     public function show(int $issue_id)
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UnXvlC3OmMnJ_B_vcJwLxdn4lW1On3uL');
         $response = $mantisApi->getIssueById($issue_id);
         return response()->json(json_decode($response));
         return DB::table('tickets_convertforms_conversions')->get();
@@ -41,56 +41,12 @@ class IssuesController extends Controller
             ->where('code_user', '=', $code_user)
             ->whereNotNull('issue_id')
             ->latest()->get();
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UnXvlC3OmMnJ_B_vcJwLxdn4lW1On3uL');
 
         $full_response = [];
         //Receive all the user issue's as object
         foreach ($user_issues as $user_issue) {
             $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
-            if (!isset($mantisIssue['code'])) { //check if has error code, if not ...
-                $full_response[] = $mantisIssue['issues'][0];
-            }
-        }
-        //Let's format in the correct way, for not showing unecessary fields.
-        $final_response = [];
-        foreach ($full_response as $response_item) {
-            unset($response_item['reporter'], $response_item['resolution'], $response_item['priority'], $response_item['reproducibility']
-                , $response_item['sticky'], $response_item['view_state'], $response_item['severity'], $response_item['notes'], $response_item['custom_fields'], $response_item['history']);
-
-            //Format hours
-            $created_at = explode('T', $response_item['created_at']);
-            $created_at_date = $created_at[0];
-            $created_at_time = explode('-', $created_at[1])[0];
-
-            $updated_at = explode('T', $response_item['updated_at']);
-            $updated_at_date = $updated_at[0];
-            $updated_at_time = explode('-', $updated_at[1])[0];
-
-            $response_item['created_at'] = $created_at_date . ' ' . $created_at_time;
-            $response_item['updated_at'] = $updated_at_date . ' ' . $updated_at_time;
-
-            $final_response[] = $response_item;
-        }
-        return response($final_response, 200);
-
-    }
-
-    public function getUserIssuesNotClosed(string $code_user)
-    {
-        $user_issues = DB::table('user_issues_form')
-            ->where('code_user', '=', $code_user)
-            ->whereNotNull('issue_id')
-            ->latest()->get();
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
-
-        $full_response = [];
-        //Receive all the user issue's as object
-        foreach ($user_issues as $user_issue) {
-
-
-
-            $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
-            dd($mantisIssue['issues']);
             if (!isset($mantisIssue['code'])) { //check if has error code, if not ...
                 $full_response[] = $mantisIssue['issues'][0];
             }
@@ -141,7 +97,7 @@ class IssuesController extends Controller
             ]);
 
         //Create Mantis Api Instance create an issue
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UnXvlC3OmMnJ_B_vcJwLxdn4lW1On3uL');
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
         $issue_object = json_decode($issue);
         $issue_id = $issue_object->issue->id;
@@ -199,7 +155,7 @@ class IssuesController extends Controller
 
     public function addUserNoteToIssue($issue_id, Request $request): \Illuminate\Http\JsonResponse
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UnXvlC3OmMnJ_B_vcJwLxdn4lW1On3uL');
 
         $questions = $request->input('questions');
         $answers = $request->input('answers');
@@ -229,7 +185,7 @@ class IssuesController extends Controller
         $user_email = $user_issues->code_user;
         $message = $request->input('message');
         //Connect to mantis API to add the note.
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'VZP_UUm6aJyvwx6HfZvk8_wNGe0l80Xl');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UnXvlC3OmMnJ_B_vcJwLxdn4lW1On3uL');
         $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
 
         //Send email to user
