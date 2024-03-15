@@ -86,8 +86,12 @@ class IssuesController extends Controller
         $full_response = [];
         //Receive all the user issue's as object
         foreach ($user_issues as $user_issue) {
+
+
+
             $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
-            if (!isset($mantisIssue['code']) && $mantisIssue['issues'][0]['status']!== "closed") { //check if has error code, if not ...
+            dd($mantisIssue['issues'][0]);
+            if (!isset($mantisIssue['code'])) { //check if has error code, if not ...
                 $full_response[] = $mantisIssue['issues'][0];
             }
         }
