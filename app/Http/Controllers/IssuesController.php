@@ -22,14 +22,14 @@ class IssuesController extends Controller
 
     public function index()
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, '0sfsooA2_XOXe9w6u6YpSXJPd3aupo6l');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $response = $mantisApi->getAllIssues();
         return response()->json(json_decode($response));
     }
 
     public function show(int $issue_id)
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, '0sfsooA2_XOXe9w6u6YpSXJPd3aupo6l');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $response = $mantisApi->getIssueById($issue_id);
         return response()->json(json_decode($response));
         return DB::table('tickets_convertforms_conversions')->get();
@@ -41,7 +41,7 @@ class IssuesController extends Controller
             ->where('code_user', '=', $code_user)
             ->whereNotNull('issue_id')
             ->latest()->get();
-        $mantisApi = new MantisApi($this->mantisBaseUrl, '0sfsooA2_XOXe9w6u6YpSXJPd3aupo6l');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
 
         $full_response = [];
         //Receive all the user issue's as object
@@ -97,7 +97,7 @@ class IssuesController extends Controller
             ]);
 
         //Create Mantis Api Instance create an issue
-        $mantisApi = new MantisApi($this->mantisBaseUrl, '0sfsooA2_XOXe9w6u6YpSXJPd3aupo6l');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
         $issue_object = json_decode($issue);
         $issue_id = $issue_object->issue->id;
@@ -155,7 +155,7 @@ class IssuesController extends Controller
 
     public function addUserNoteToIssue($issue_id, Request $request): \Illuminate\Http\JsonResponse
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, '0sfsooA2_XOXe9w6u6YpSXJPd3aupo6l');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
 
         $questions = $request->input('questions');
         $answers = $request->input('answers');
@@ -185,7 +185,7 @@ class IssuesController extends Controller
         $user_email = $user_issues->code_user;
         $message = $request->input('message');
         //Connect to mantis API to add the note.
-        $mantisApi = new MantisApi($this->mantisBaseUrl, '0sfsooA2_XOXe9w6u6YpSXJPd3aupo6l');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
 
         //Send email to user
