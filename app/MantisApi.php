@@ -98,7 +98,7 @@ class MantisApi
     private function makeRequest(string $method, string $endpoint, array $options = [])
     {
         $this->buildUrl($endpoint); //Set the full URL for making the request.
-        curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Asign it to te client
+        curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Assign it to te client
         curl_setopt($this->httpClient, CURLOPT_CUSTOMREQUEST, $method); //Make http method to post
         if (isset($options['body'])) {
             curl_setopt($this->httpClient, CURLOPT_POSTFIELDS, $options['body']); //Make http method to post

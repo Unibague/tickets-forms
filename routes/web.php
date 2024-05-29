@@ -26,6 +26,9 @@ $router->get('/conversions/{conversion_id}', 'FormController@generateResults');
 
 // Enviar comentario al usuario
 $router->post('/comments/issue/{issue_id}/', 'IssuesController@sendMessageToUserByEmail');
+//$router->post('/comments/issue/{issue_id}/', 'IssuesController@testingSendMessageToUserEmail');
 $router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUserForm');
 
+//Previsualizar plantilla de correo
+$router->get('/preview-email', 'IssuesController@previewSendMessageToUserEmail');
 

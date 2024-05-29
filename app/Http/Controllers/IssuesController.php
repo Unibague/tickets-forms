@@ -172,7 +172,6 @@ class IssuesController extends Controller
 
     public function sendMessageToUserByEmail(Request $request, $issue_id)
     {
-
         $user_issues = DB::table('user_issues_form')
             ->where('issue_id', '=', $issue_id)
             ->first();
@@ -189,10 +188,51 @@ class IssuesController extends Controller
         $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
 
         //Send email to user
-        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));
+        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\UserMessageNotificationEnhanced($issue_id, $message));
 
         return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
-
-
     }
+
+
+    public function testingSendMessageToUserEmail(Request $request, $issue_id){
+        $user_issues = DB::table('user_issues_form')
+            ->where('issue_id', '=', $issue_id)
+            ->first();
+
+        //If the issue it's not found, return a 404 error
+        if (!$user_issues) {
+            return response()->json([], 404);
+        }
+        //Get the user email.
+        $user_email = $user_issues->code_user;
+        $message = $request->input('message');
+//        //Connect to mantis API to add the note.
+//        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+//        $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
+
+        $data= ['issue_id' => $issue_id, 'message' => $message];
+
+        //Send email to user
+        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\UserMessageNotificationEnhanced($data));
+
+        return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
+    }
+
+    public function previewSendMessageToUserEmail()
+    {
+        $data = [
+            'issue_id' => 123,
+            'message' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque quis enim magna. Curabitur vestibulum iaculis ante, eget tempor eros congue in. Aliquam eget euismod arcu. Sed sodales, est sit amet suscipit blandit, lorem dui faucibus est, vitae maximus purus massa eget nunc. Curabitur dignissim vestibulum lacus at volutpat.',
+        ];
+
+        // Render the email template
+        $emailContent = (new \App\Mail\UserMessageNotificationEnhanced($data))->render();
+
+        // Return the email content as HTML response
+        return response()->make($emailContent, 200, [
+            'Content-Type' => 'text/html',
+        ]);
+    }
+
+
 }
