@@ -15,24 +15,23 @@
 
         Se ha realizado una actualización en su solicitud de servicio. El mensaje que ha suministrado la persona encargada para solucionar su requerimiento es el siguiente: <br><br>
 
-        <div style="text-align: center">
-            <textarea> {{$data['message']}} </textarea> <br><br>
+        <div style="text-align: center; margin-bottom: 15px">
+            <pre style="font-family: inherit; font-size: inherit;">
+                {{$data['message']}}
+            </pre> <br><br>
         </div>
         Si desea consultar el estado de su solicitud, dejar observaciones, comentarios o adjuntar información adicional, por favor,
         haga clic en el siguiente botón.
 
-
-        <div style="display: flex; align-items: center; justify-content: center">
-            <a href="https://servicios.unibague.edu.co/tickets" ><img src="{{ url('images/follow.png') }}"> </a>
+        <div style="text-align: center">
+            <a href="https://servicios.unibague.edu.co/tickets" ><img src="{{$message->embed(public_path().'/images/follow.png')}}"></a>
         </div>
 
         <p> Cordialmente,<br>
             Universidad de Ibagué
         </p>
 
-
         </div>
-    </div>
 </section>
 
 </body>
