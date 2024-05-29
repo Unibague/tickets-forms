@@ -16,7 +16,7 @@
         Se ha realizado una actualización en su solicitud de servicio. El mensaje que ha suministrado la persona encargada para solucionar su requerimiento es el siguiente: <br><br>
 
         <div style="text-align: center">
-        <strong > {{$data['message']}} </strong> <br><br>
+            <textarea> {{$data['message']}} </textarea> <br><br>
         </div>
         Si desea consultar el estado de su solicitud, dejar observaciones, comentarios o adjuntar información adicional, por favor,
         haga clic en el siguiente botón.
