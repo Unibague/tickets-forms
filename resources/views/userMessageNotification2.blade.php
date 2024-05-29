@@ -16,7 +16,7 @@
         Se ha realizado una actualización en su solicitud de servicio. El mensaje que ha suministrado la persona encargada para solucionar su requerimiento es el siguiente: <br><br>
 
         <div style="text-align: center; margin-bottom: 15px">
-            <pre style="font-family: inherit; font-size: inherit;">
+            <pre style="font-family: inherit; font-size: inherit; font-weight: bold">
                 {{$data['message']}}
             </pre> <br><br>
         </div>
