@@ -30,5 +30,5 @@ $router->post('/comments/issue/{issue_id}/', 'IssuesController@sendMessageToUser
 $router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUserForm');
 
 //Previsualizar plantilla de correo
-$router->get('/preview-email', 'IssuesController@previewSendMessageToUserEmail');
+//$router->get('/preview-email', 'IssuesController@previewSendMessageToUserEmail');
 
