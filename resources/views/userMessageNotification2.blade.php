@@ -11,8 +11,6 @@
 
         <strong style="margin-bottom: 20px">Actualización de su solicitud con ID #{{$data['issue_id']}}</strong><br><br>
 
-        Reciba un cordial saludo, <br><br>
-
         Se ha realizado una actualización en su solicitud de servicio. El mensaje que ha suministrado la persona encargada para solucionar su requerimiento es el siguiente: <br><br>
 
         <div style="text-align: center; margin-bottom: 15px">
@@ -26,10 +24,6 @@
         <div style="text-align: center">
             <a href="https://servicios.unibague.edu.co/tickets" ><img src="{{$message->embed(public_path().'/images/follow.png')}}"></a>
         </div>
-
-        <p> Cordialmente,<br>
-            Universidad de Ibagué
-        </p>
 
         </div>
 </section>
