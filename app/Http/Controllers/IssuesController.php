@@ -187,16 +187,15 @@ class IssuesController extends Controller
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
 
-//        //Send email to user
 //        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));
 
         $data= ['issue_id' => $issue_id, 'message' => $message];
 
         //Send email to user
-        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\UserMessageNotificationEnhanced($data));
+        $email = new \App\Mail\UserMessageNotificationEnhanced($data);
+        $email->subject = "Notificación de mensaje del centro de serivicos solicitud " . $issue_id;
 
-
-
+        \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
         return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
     }
 
@@ -220,8 +219,11 @@ class IssuesController extends Controller
         $data= ['issue_id' => $issue_id, 'message' => $message];
 
         //Send email to user
-        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\UserMessageNotificationEnhanced($data));
 
+        $email = new \App\Mail\UserMessageNotificationEnhanced($data);
+        $email->subject = "Notificación de mensaje del centro de serivicos solicitud " . $issue_id;
+
+        \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
         return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
     }
 

@@ -11,7 +11,7 @@ class UserMessageNotificationEnhanced extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $subject = "Notificación de mensaje del Centro de Servicios";
+    public $subject = "Notificación de mensaje del Centro de Servicios Solicitud ";
     public $data;
 
     /**
