@@ -11,12 +11,12 @@
 
         <strong style="margin-bottom: 20px">Actualización de su solicitud con ID #{{$data['issue_id']}}</strong><br><br>
 
-        Se ha realizado una actualización en su solicitud de servicio. El mensaje que ha suministrado la persona encargada para solucionar su requerimiento es el siguiente: <br><br>
+        Se ha realizado una actualización en su solicitud de servicio. <br>
 
         <div style="text-align: center; margin-bottom: 15px">
             <pre style="font-family: inherit; font-size: inherit; font-weight: bold">
                 {{$data['message']}}
-            </pre> <br><br>
+            </pre>
         </div>
         Si desea consultar el estado de su solicitud, dejar observaciones, comentarios o adjuntar información adicional, por favor,
         haga clic en el siguiente botón.

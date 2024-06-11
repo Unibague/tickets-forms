@@ -178,7 +178,7 @@ class IssuesController extends Controller
 
         //If the issue it's not found, return a 404 error
         if (!$user_issues) {
-            return response()->json([], 404);
+            return response()->json(['message' => "No se ha encontrado un ticket asociado a ese ID"], 404);
         }
         //Get the user email.
         $user_email = $user_issues->code_user;
