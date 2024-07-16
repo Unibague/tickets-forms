@@ -72,7 +72,48 @@ class IssuesController extends Controller
             $final_response[] = $response_item;
         }
         return response($final_response, 200);
+    }
 
+    public function getUserIssuesNotClosed(string $code_user)
+    {
+        $user_issues = DB::table('user_issues_form')
+            ->where('code_user', '=', $code_user)
+            ->whereNotNull('issue_id')
+            ->latest()->get();
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+
+        $full_response = [];
+        //Receive all the user issue's as object
+        foreach ($user_issues as $user_issue) {
+
+            $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
+
+//            {/* Validation to not include closed issues*/}
+            if (!isset($mantisIssue['code']) && $mantisIssue['issues'][0]['status']['name'] != 'closed') { //check if has error code, if not ...
+                $full_response[] = $mantisIssue['issues'][0];
+            }
+        }
+        //Let's format in the correct way, for not showing unecessary fields.
+        $final_response = [];
+        foreach ($full_response as $response_item) {
+            unset($response_item['reporter'], $response_item['resolution'], $response_item['priority'], $response_item['reproducibility']
+                , $response_item['sticky'], $response_item['view_state'], $response_item['severity'], $response_item['notes'], $response_item['custom_fields'], $response_item['history']);
+
+            //Format hours
+            $created_at = explode('T', $response_item['created_at']);
+            $created_at_date = $created_at[0];
+            $created_at_time = explode('-', $created_at[1])[0];
+
+            $updated_at = explode('T', $response_item['updated_at']);
+            $updated_at_date = $updated_at[0];
+            $updated_at_time = explode('-', $updated_at[1])[0];
+
+            $response_item['created_at'] = $created_at_date . ' ' . $created_at_time;
+            $response_item['updated_at'] = $updated_at_date . ' ' . $updated_at_time;
+
+            $final_response[] = $response_item;
+        }
+        return response($final_response, 200);
     }
 
 
