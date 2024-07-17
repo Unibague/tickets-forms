@@ -275,11 +275,11 @@ class MantisApi
                     $text .= $question . ": " . $answers[$question] . "\n";
                 }
             }
-            //If the user didnt answer, there is a possibility that forms api didnt send the answer in the arry, so lets
+/*            //If the user didnt answer, there is a possibility that forms api didnt send the answer in the arry, so lets
             //leave it blank
             else {
                 $text .= $question . ": \n";
-            }
+            }*/
 
         }
         return $text;
