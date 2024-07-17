@@ -266,13 +266,12 @@ class MantisApi
                             $text .= $question . " " . $file_counter . ": https://drive.google.com/file/d/" . $part_of_answer . "\n";
                         } else {
                             $text .= $question . " " . $file_counter . ": " . $part_of_answer . "\n";
-
                         }
                         $file_counter++;
                     }
                 } //If not, just print it as text.
                 else {
-                    $text .= $question . ": " . $answers[$question] . "\n";
+                    $text .= "<strong>".$question."</strong>" . ": " . $answers[$question] . "\n";
                 }
             }
 /*            //If the user didnt answer, there is a possibility that forms api didnt send the answer in the arry, so lets
