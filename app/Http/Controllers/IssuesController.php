@@ -137,7 +137,7 @@ class IssuesController extends Controller
                 'updated_at' => $time
             ]);
 
-        //Create Mantis Api Instance create an issue
+        //Create Mantis Api Instance and then create an issue
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
         $issue_object = json_decode($issue);
@@ -146,8 +146,7 @@ class IssuesController extends Controller
         //Change category to the provided by the user
         $mantisApi->changeIssueCategory($issue_id, $this->createIssueData['category']);
 
-        //Convert the issue to object in order to get it's id.
-
+        //Convert the issue to object in order to get its id.
         DB::table('user_issues_form')
             ->where('id', $user_issues_form_id)
             ->update(['issue_id' => $issue_id]);
