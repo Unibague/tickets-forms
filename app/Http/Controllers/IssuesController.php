@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\IssueCreatedMailable;
 use App\MantisApi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -120,7 +121,6 @@ class IssuesController extends Controller
     public function createIssue(Request $request)
     {
         //First, verify the request.
-
         $errors = $this->verifyCreateIssueRequest($request);
         if (count($errors) > 0) {
             return response()->json($errors, 400);
@@ -153,8 +153,21 @@ class IssuesController extends Controller
 
         //Now, lets parse all the questions and create a note with that information.
         $mantisApi->AddNoteToIssue($request->input('questions'), $request->input('answers'), $issue_id);
-        return response('issue with id ' . $issue_id . ' created successfully.', 200);
 
+        {/* Issue created correctly, now send confirmation email to user */}
+        $data= [
+            'project_name' => $request->input('project'),
+            'issue_name' => $request->input('issue_name'),
+            'issue_id' => $issue_id
+        ];
+
+        $user_email = $request->input('code_user');
+
+        $email = new IssueCreatedMailable($data);
+        $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
+        \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
+
+        return response('issue with id ' . $issue_id . ' created successfully.', 200);
     }
 
     private function verifyCreateIssueRequest(Request $request)
@@ -233,7 +246,7 @@ class IssuesController extends Controller
 
         //Send email to user
         $email = new \App\Mail\UserMessageNotificationEnhanced($data);
-        $email->subject = "Notificación de mensaje del centro de serivicos solicitud " . $issue_id;
+        $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
 
         \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
         return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
@@ -261,7 +274,7 @@ class IssuesController extends Controller
         //Send email to user
 
         $email = new \App\Mail\UserMessageNotificationEnhanced($data);
-        $email->subject = "Notificación de mensaje del centro de serivicos solicitud " . $issue_id;
+        $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
 
         \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
         return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
