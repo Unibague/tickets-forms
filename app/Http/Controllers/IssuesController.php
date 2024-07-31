@@ -191,7 +191,14 @@ class IssuesController extends Controller
             $errors[] = 'No issue_name provided';
         }
 
-        $descriptive_question = $request->input('answers')[$request->input('descriptive_question')] ?? '';
+        $formDescriptiveQuestionsString = $request->input('descriptive_question');
+        $descriptiveQuestionsArray = explode('|',$formDescriptiveQuestionsString);
+        $descriptiveQuestionsAnswersArray = [];
+        foreach ($descriptiveQuestionsArray as $item){
+            $descriptiveQuestionsAnswersArray [] = $request->input('answers')[$item];
+        }
+        $descriptive_question = implode(' - ', $descriptiveQuestionsAnswersArray);
+//        $descriptive_question = $request->input('answers')[$request->input('descriptive_question')] ?? '';
 
         $this->createIssueData = [
             'code_user' => $code_user,
