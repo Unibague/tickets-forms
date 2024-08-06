@@ -16,17 +16,19 @@
         de Cobro y otros documentos”, con ID <strong>#{{$data['issue_id']}} </strong>. Esta será tramitada teniendo en cuenta lo siguiente:
 
             <ul>
-                <li> <strong>Facturas Electrónicas</strong>: Es necesario responder dando click en link
-                    <span style="color: #3498db">“Seguimiento de tickets” </span> y dar aprobación como supervisor del contrato.
-                    Adjunta el formato de
-                    “Autorización de Contratación y Gastos”, que contenga todas las firmas. <br>
+                <li> <strong>Facturas Electrónicas</strong>: Es necesario responder dando clic en link
+                    <span style="color: #3498db">“Seguimiento a solicitud” </span> y dar aprobación como supervisor del contrato.
+                    Adjunta el formato de “Autorización de Contratación y Gastos”, que contenga todas las firmas.
+                    Si la factura electrónica es de persona natural adjuntar la
+                    planilla de seguridad social como independiente y formato de “Retención
+                    Rentas de Trabajo sin Vínculo Laboral”. <br>
                     <span style="color: #3498db"> ¡¡¡ Importante !!! <br>
                         Pasados tres días calendario, sin respuesta, las facturas electrónicas serán
                         rechazadas en la plataforma de la Dian. </span>
                 </li>
                 <li>
                     <strong>Cuentas de Cobro</strong>: En caso de necesitar alguna corrección o documento
-                    adicional, se le notificará a el correo electrónico diligenciado en la solicitud.
+                    adicional, se le notificará al correo electrónico diligenciado en la solicitud.
                     Recuerda, debes entregar en la oficina de Dirección Administrativa de forma física,
                     la cuenta de cobro con firma autógrafa, adjuntando la planilla de seguridad social
                     como trabajador independiente, RUT con fecha de impresión vigente, Certificación
@@ -34,7 +36,8 @@
                 </li>
                 <li>
                     <strong>Otros documentos (Pagos y descuentos de Nómina, Préstamos y
-                        Devoluciones, Pruebas Saber Pro, Tesorería)</strong>: Si se requiere alguna corrección,
+                        Devoluciones, Pruebas Saber Pro, Solicitudes de giro y Monitorias):</strong>:
+                    Si se requiere alguna corrección,
                     se le notificará al correo electrónico diligenciado en la solicitud. <br> <br>
                 </li>
 
