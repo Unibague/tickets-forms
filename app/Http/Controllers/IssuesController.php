@@ -153,12 +153,14 @@ class IssuesController extends Controller
 
         //Now, lets parse all the questions and create a note with that information.
         $mantisApi->AddNoteToIssue($request->input('questions'), $request->input('answers'), $issue_id);
+        $uploadedFilesQuestions = $mantisApi->getUploadedFilesQuestionsAsArray($request->input('questions'), $request->input('answers'));
 
         {/* Issue created correctly, now send confirmation email to user */}
         $data= [
             'project_name' => $request->input('project'),
             'issue_name' => $request->input('issue_name'),
-            'issue_id' => $issue_id
+            'issue_id' => $issue_id,
+            'uploaded_files_questions' => $uploadedFilesQuestions
         ];
 
         $user_email = $request->input('code_user');

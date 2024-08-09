@@ -13,7 +13,13 @@
         Estimado (a), <br>
 
         Hemos recibido exitosamente tu solicitud de “Radicación Facturas Electrónicas, Cuentas
-        de Cobro y otros documentos”, con ID <strong>#{{$data['issue_id']}} </strong>. Esta será tramitada teniendo en cuenta lo siguiente:
+        de Cobro y otros documentos”, con ID <strong>#{{$data['issue_id']}} </strong>. Los archivos que recibimos son los siguientes: <br>
+
+            @foreach($data['uploaded_files_questions'] as $question)
+                <p> {{$question}}</p>
+            @endforeach
+
+            Tu solicitud será tramitada teniendo en cuenta lo siguiente:
 
             <ul>
                 <li> <strong>Facturas Electrónicas</strong>: Es necesario responder dando clic en link

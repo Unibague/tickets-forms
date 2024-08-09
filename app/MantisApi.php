@@ -285,6 +285,32 @@ class MantisApi
     }
 
     /**
+     * @param array $questions
+     * @param array $answers
+     * @return array
+     */
+    public function getUploadedFilesQuestionsAsArray(array $questions, array $answers): array
+    {
+        $uploadedFilesQuestions = [];
+        $file_counter = 1;
+        foreach ($questions as $question => $type) {
+            //Fist, verify that the user answer the particular question
+            if (isset($answers[$question])) {
+                //Check if is file upload, in order to parse all the provided answers
+                if (is_array($answers[$question])) {
+                    foreach ($answers[$question] as $part_of_answer) {
+                        if ($type === 'FILE_UPLOAD') {
+                            $uploadedFilesQuestions [] = $file_counter . ". " . $question . " " . ": https://drive.google.com/file/d/" . $part_of_answer . "\n";
+                            $file_counter++;
+                        }
+                    }
+                }
+            }
+        }
+        return $uploadedFilesQuestions;
+    }
+
+    /**
      * @param int $id
      * @return bool|string
      */
