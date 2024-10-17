@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\IssueCreatedMailable;
 use App\MantisApi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -79,7 +80,48 @@ class IssuesController extends Controller
             $final_response[] = $response_item;
         }
         return response($final_response, 200);
+    }
 
+    public function getUserIssuesNotClosed(string $code_user)
+    {
+        $user_issues = DB::table('user_issues_form')
+            ->where('code_user', '=', $code_user)
+            ->whereNotNull('issue_id')
+            ->latest()->get();
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+
+        $full_response = [];
+        //Receive all the user issue's as object
+        foreach ($user_issues as $user_issue) {
+
+            $mantisIssue = json_decode($mantisApi->getIssueById($user_issue->issue_id), true); //Get the issue from the mantis api
+
+//            {/* Validation to not include closed issues*/}
+            if (!isset($mantisIssue['code']) && $mantisIssue['issues'][0]['status']['name'] != 'closed') { //check if has error code, if not ...
+                $full_response[] = $mantisIssue['issues'][0];
+            }
+        }
+        //Let's format in the correct way, for not showing unecessary fields.
+        $final_response = [];
+        foreach ($full_response as $response_item) {
+            unset($response_item['reporter'], $response_item['resolution'], $response_item['priority'], $response_item['reproducibility']
+                , $response_item['sticky'], $response_item['view_state'], $response_item['severity'], $response_item['notes'], $response_item['custom_fields'], $response_item['history']);
+
+            //Format hours
+            $created_at = explode('T', $response_item['created_at']);
+            $created_at_date = $created_at[0];
+            $created_at_time = explode('-', $created_at[1])[0];
+
+            $updated_at = explode('T', $response_item['updated_at']);
+            $updated_at_date = $updated_at[0];
+            $updated_at_time = explode('-', $updated_at[1])[0];
+
+            $response_item['created_at'] = $created_at_date . ' ' . $created_at_time;
+            $response_item['updated_at'] = $updated_at_date . ' ' . $updated_at_time;
+
+            $final_response[] = $response_item;
+        }
+        return response($final_response, 200);
     }
 
 
@@ -116,8 +158,23 @@ class IssuesController extends Controller
 
         //Now, lets parse all the questions and create a note with that information.
         $mantisApi->AddNoteToIssue($request->input('questions'), $request->input('answers'), $issue_id);
-        return response('issue with id ' . $issue_id . ' created successfully.', 200);
+        $uploadedFilesQuestions = $mantisApi->getUploadedFilesQuestionsAsArray($request->input('questions'), $request->input('answers'));
 
+        {/* Issue created correctly, now send confirmation email to user */}
+        $data= [
+            'project_name' => $request->input('project'),
+            'issue_name' => $request->input('issue_name'),
+            'issue_id' => $issue_id,
+            'uploaded_files_questions' => $uploadedFilesQuestions
+        ];
+
+        $user_email = $request->input('code_user');
+
+        $email = new IssueCreatedMailable($data);
+        $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
+        \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
+
+        return response('issue with id ' . $issue_id . ' created successfully.', 200);
     }
 
     private function verifyCreateIssueRequest(Request $request)
@@ -141,7 +198,14 @@ class IssuesController extends Controller
             $errors[] = 'No issue_name provided';
         }
 
-        $descriptive_question = $request->input('answers')[$request->input('descriptive_question')] ?? '';
+        $formDescriptiveQuestionsString = $request->input('descriptive_question');
+        $descriptiveQuestionsArray = explode('|',$formDescriptiveQuestionsString);
+        $descriptiveQuestionsAnswersArray = [];
+        foreach ($descriptiveQuestionsArray as $item){
+            $descriptiveQuestionsAnswersArray [] = $request->input('answers')[$item];
+        }
+        $descriptive_question = implode(' - ', $descriptiveQuestionsAnswersArray);
+//        $descriptive_question = $request->input('answers')[$request->input('descriptive_question')] ?? '';
 
         $this->createIssueData = [
             'code_user' => $code_user,
@@ -175,7 +239,35 @@ class IssuesController extends Controller
 
     public function sendMessageToUserByEmail(Request $request, $issue_id)
     {
+        $user_issues = DB::table('user_issues_form')
+            ->where('issue_id', '=', $issue_id)
+            ->first();
 
+        //If the issue it's not found, return a 404 error
+        if (!$user_issues) {
+            return response()->json(['message' => "No se ha encontrado un ticket asociado a ese ID"], 404);
+        }
+        //Get the user email.
+        $user_email = $user_issues->code_user;
+        $message = $request->input('message');
+        //Connect to mantis API to add the note.
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
+
+//        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));
+
+        $data= ['issue_id' => $issue_id, 'message' => $message];
+
+        //Send email to user
+        $email = new \App\Mail\UserMessageNotificationEnhanced($data);
+        $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
+
+        \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
+        return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
+    }
+
+
+    public function testingSendMessageToUserEmail(Request $request, $issue_id){
         $user_issues = DB::table('user_issues_form')
             ->where('issue_id', '=', $issue_id)
             ->first();
@@ -187,15 +279,36 @@ class IssuesController extends Controller
         //Get the user email.
         $user_email = $user_issues->code_user;
         $message = $request->input('message');
-        //Connect to mantis API to add the note.
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
-        $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
+//        //Connect to mantis API to add the note.
+//        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+//        $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
+
+        $data= ['issue_id' => $issue_id, 'message' => $message];
 
         //Send email to user
-        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));
 
+        $email = new \App\Mail\UserMessageNotificationEnhanced($data);
+        $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
+
+        \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
         return response()->json(['message' => 'Estimado usuario, su comentario fue añadido exitosamente'], 200);
-
-
     }
+
+    public function previewSendMessageToUserEmail()
+    {
+        $data = [
+            'issue_id' => 123,
+            'message' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque quis enim magna. Curabitur vestibulum iaculis ante, eget tempor eros congue in. Aliquam eget euismod arcu. Sed sodales, est sit amet suscipit blandit, lorem dui faucibus est, vitae maximus purus massa eget nunc. Curabitur dignissim vestibulum lacus at volutpat.',
+        ];
+
+        // Render the email template
+        $emailContent = (new \App\Mail\UserMessageNotificationEnhanced($data))->render();
+
+        // Return the email content as HTML response
+        return response()->make($emailContent, 200, [
+            'Content-Type' => 'text/html',
+        ]);
+    }
+
+
 }
