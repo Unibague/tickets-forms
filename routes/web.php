@@ -9,6 +9,9 @@ $router->get('/', function () use ($router) {
 //All issues
 $router->get('/issues', 'IssuesController@index');
 
+$router->get('/customFields', 'IssuesController@indexCustomFields');
+
+
 //Create issue
 $router->post('/issues', 'IssuesController@createIssue');
 //Get specific issue

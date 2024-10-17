@@ -98,7 +98,9 @@ class MantisApi
     private function makeRequest(string $method, string $endpoint, array $options = [])
     {
         $this->buildUrl($endpoint); //Set the full URL for making the request.
-        curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Assign it to te client
+
+        curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Assign it to the client
+
         curl_setopt($this->httpClient, CURLOPT_CUSTOMREQUEST, $method); //Make http method to post
         if (isset($options['body'])) {
             curl_setopt($this->httpClient, CURLOPT_POSTFIELDS, $options['body']); //Make http method to post
@@ -128,6 +130,29 @@ class MantisApi
     {
         $url = 'https://tickets.unibague.edu.co/tickets-forms/conversions/';
 
+        $customFields = null;
+
+        if ($request_data['project'] === 'FINANCIERA') {
+            $customFields = [];
+            $customFieldsQuestions =
+                [
+                ['id' => 9 , 'name' => 'Número de Identificación Tributaria del contratista, Proveedor o Tercero (NIT,  CC, Pasaporte o documento extranjero)'],
+                ['id' => 10 , 'name'=>'Nombre del contratista, Proveedor o Tercero', 'Valor total. (factura electrónica, cuenta de cobro, nota devolución, etc)'],
+                ['id' => 15, 'name' => 'Valor total. (factura electrónica, cuenta de cobro, nota devolución, etc)'],
+                ['id' => 18, 'name' => 'CUFE - Factura Electrónica']
+                ];
+            foreach ($customFieldsQuestions as $customFieldQuestion) {
+                if (array_key_exists($customFieldQuestion['name'], $request_data['answers'])){
+                    $customFields [] = [
+                        'field' => [
+                            'id' => $customFieldQuestion['id']
+                        ],
+                        'value' => $request_data['answers'][$customFieldQuestion['name']]
+                    ];
+                }
+            }
+        }
+
         $this->buildHttpClient();
         $headers = ['Authorization: ' . $this->authorizationToken,
             'Content-Type: ' . 'application/json'];
@@ -139,7 +164,8 @@ class MantisApi
             ],
             'project' => [
                 'name' => $request_data['project']
-            ]
+            ],
+            'custom_fields' => $customFields
         ];
         $rawBody = json_encode($body);
         $options = [
