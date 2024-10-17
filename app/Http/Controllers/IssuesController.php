@@ -27,6 +27,13 @@ class IssuesController extends Controller
         return response()->json(json_decode($response));
     }
 
+    public function indexCustomFields()
+    {
+        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $response = $mantisApi->getCustomFields();
+        return response()->json(json_decode($response));
+    }
+
     public function show(int $issue_id)
     {
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
@@ -78,13 +85,11 @@ class IssuesController extends Controller
 
     public function createIssue(Request $request)
     {
-        //First, verify the request.
-
         $errors = $this->verifyCreateIssueRequest($request);
         if (count($errors) > 0) {
             return response()->json($errors, 400);
         }
-        //Now that the request its properly made, save the user responses
+        //Now that the request is properly made, save the user responses
         $time = Carbon::now()->toDateTimeString();
         $user_issues_form_id = DB::table('user_issues_form')
             ->insertGetId([
@@ -96,7 +101,6 @@ class IssuesController extends Controller
                 'updated_at' => $time
             ]);
 
-        //Create Mantis Api Instance create an issue
         $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
         $issue_object = json_decode($issue);
@@ -105,8 +109,7 @@ class IssuesController extends Controller
         //Change category to the provided by the user
         $mantisApi->changeIssueCategory($issue_id, $this->createIssueData['category']);
 
-        //Convert the issue to object in order to get it's id.
-
+        //Convert the issue to object in order to get its id.
         DB::table('user_issues_form')
             ->where('id', $user_issues_form_id)
             ->update(['issue_id' => $issue_id]);
