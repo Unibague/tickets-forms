@@ -98,7 +98,9 @@ class MantisApi
     private function makeRequest(string $method, string $endpoint, array $options = [])
     {
         $this->buildUrl($endpoint); //Set the full URL for making the request.
+
         curl_setopt($this->httpClient, CURLOPT_URL, $this->fullEndpointUrl); // Assign it to the client
+
         curl_setopt($this->httpClient, CURLOPT_CUSTOMREQUEST, $method); //Make http method to post
         if (isset($options['body'])) {
             curl_setopt($this->httpClient, CURLOPT_POSTFIELDS, $options['body']); //Make http method to post
@@ -290,23 +292,48 @@ class MantisApi
                             $text .= $question . " " . $file_counter . ": https://drive.google.com/file/d/" . $part_of_answer . "\n";
                         } else {
                             $text .= $question . " " . $file_counter . ": " . $part_of_answer . "\n";
-
                         }
                         $file_counter++;
                     }
                 } //If not, just print it as text.
                 else {
-                    $text .= $question . ": " . $answers[$question] . "\n";
+                    $text .= "<strong>".$question."</strong>" . ": " . $answers[$question] . "\n";
                 }
             }
-            //If the user didnt answer, there is a possibility that forms api didnt send the answer in the arry, so lets
+/*            //If the user didnt answer, there is a possibility that forms api didnt send the answer in the arry, so lets
             //leave it blank
             else {
                 $text .= $question . ": \n";
-            }
+            }*/
 
         }
         return $text;
+    }
+
+    /**
+     * @param array $questions
+     * @param array $answers
+     * @return array
+     */
+    public function getUploadedFilesQuestionsAsArray(array $questions, array $answers): array
+    {
+        $uploadedFilesQuestions = [];
+        $file_counter = 1;
+        foreach ($questions as $question => $type) {
+            //Fist, verify that the user answer the particular question
+            if (isset($answers[$question])) {
+                //Check if is file upload, in order to parse all the provided answers
+                if (is_array($answers[$question])) {
+                    foreach ($answers[$question] as $part_of_answer) {
+                        if ($type === 'FILE_UPLOAD') {
+                            $uploadedFilesQuestions [] = $file_counter . ". " . $question . " " . ": https://drive.google.com/file/d/" . $part_of_answer . "\n";
+                            $file_counter++;
+                        }
+                    }
+                }
+            }
+        }
+        return $uploadedFilesQuestions;
     }
 
     /**
