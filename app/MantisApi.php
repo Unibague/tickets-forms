@@ -134,7 +134,7 @@ class MantisApi
             $customFields = [];
             $customFieldsQuestions =
                 [
-                ['id' => 9 , 'name' => 'Número de Identificación Tributaria del contratista, Proveedor o Tercero (NIT,  CC, Pasaporte o documento extranjero)'],
+                ['id' => 9 , 'name' => 'Número de Identificación Tributaria del contratista, Proveedor o Tercero (NIT,  CC, Pasaporte o documento extranjero, sin símbolos separadores. Ejemplo: . / - , * _)'],
                 ['id' => 10 , 'name'=>'Nombre del contratista, Proveedor o Tercero', 'Valor total. (factura electrónica, cuenta de cobro, nota devolución, etc)'],
                 ['id' => 15, 'name' => 'Valor total. (factura electrónica, cuenta de cobro, nota devolución, etc)'],
                 ['id' => 18, 'name' => 'CUFE - Factura Electrónica']
