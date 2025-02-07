@@ -135,7 +135,7 @@ class IssuesController extends Controller
         $time = Carbon::now()->toDateTimeString();
         $user_issues_form_id = DB::table('user_issues_form')
             ->insertGetId([
-                'code_user' => $request->input('code_user'),
+                'code_user' => trim($request->input('code_user')),
                 'form_id' => $this->createIssueData['form_id'],
                 'user_responses' => json_encode($this->createIssueData['answers'], JSON_UNESCAPED_UNICODE),
                 'questions' => json_encode($this->createIssueData['questions'], JSON_UNESCAPED_UNICODE),
@@ -168,7 +168,7 @@ class IssuesController extends Controller
             'uploaded_files_questions' => $uploadedFilesQuestions
         ];
 
-        $user_email = $request->input('code_user');
+        $user_email = trim($request->input('code_user'));
 
         $email = new IssueCreatedMailable($data);
         $email->subject = "Notificación de mensaje del centro de servicios solicitud " . $issue_id;
@@ -179,7 +179,7 @@ class IssuesController extends Controller
 
     private function verifyCreateIssueRequest(Request $request)
     {
-        $code_user = $request->input('code_user');
+        $code_user = trim($request->input('code_user'));
 
         $errors = [];
         if (!$code_user) {
