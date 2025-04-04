@@ -28,9 +28,9 @@
                     Si la factura electrónica es de persona natural adjuntar la
                     planilla de seguridad social como independiente y formato de “Retención
                     Rentas de Trabajo sin Vínculo Laboral”. <br>
-                    <span style="color: #3498db"> ¡¡¡ Importante !!! <br>
+                    <strong> ¡¡¡Importante!!! <br>
                         Pasados tres días calendario, sin respuesta, las facturas electrónicas serán
-                        rechazadas en la plataforma de la Dian. </span>
+                        rechazadas en la plataforma de la Dian.</strong>
                 </li>
                 <li>
                     <strong>Cuentas de Cobro</strong>: En caso de necesitar alguna corrección o documento
