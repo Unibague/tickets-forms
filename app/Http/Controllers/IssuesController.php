@@ -127,12 +127,16 @@ class IssuesController extends Controller
 
     public function createIssue(Request $request)
     {
-        $errors = $this->verifyCreateIssueRequest($request);
-        if (count($errors) > 0) {
-            return response()->json($errors, 400);
-        }
-        //Now that the request is properly made, save the user responses
-        $time = Carbon::now()->toDateTimeString();
+        try {
+            // Ensure necessary directories exist
+            $this->ensureDirectoriesExist();
+            
+            $errors = $this->verifyCreateIssueRequest($request);
+            if (count($errors) > 0) {
+                return response()->json($errors, 400);
+            }
+            //Now that the request is properly made, save the user responses
+            $time = date('Y-m-d H:i:s');
         $user_issues_form_id = DB::table('user_issues_form')
             ->insertGetId([
                 'code_user' => trim($request->input('code_user')),
@@ -175,6 +179,14 @@ class IssuesController extends Controller
         \Illuminate\Support\Facades\Mail::to($user_email)->send($email);
 
         return response('issue with id ' . $issue_id . ' created successfully.', 200);
+        }
+        catch (\Exception $e) {
+            \Log::error('Error creating issue: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
+        }
     }
 
     private function verifyCreateIssueRequest(Request $request)
@@ -218,6 +230,25 @@ class IssuesController extends Controller
             'descriptive_question' => $descriptive_question
         ];
         return $errors;
+    }
+
+    /**
+     * Ensure necessary directories exist for file operations
+     */
+    private function ensureDirectoriesExist()
+    {
+        $directories = [
+            storage_path('app/uploads'),
+            storage_path('app/public'),
+            storage_path('app/temp'),
+            storage_path('logs')
+        ];
+        
+        foreach ($directories as $directory) {
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+        }
     }
 
     public function addUserNoteToIssue($issue_id, Request $request): \Illuminate\Http\JsonResponse
