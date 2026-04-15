@@ -35,3 +35,9 @@ $router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUs
 //Previsualizar plantilla de correo
 //$router->get('/preview-email', 'IssuesController@previewSendMessageToUserEmail');
 
+/* RUTAS PQRS */
+$router->get('/pqrs/form-data', 'PqrController@formData');
+$router->get('/pqrs/lideres',   'PqrController@lideres');
+$router->post('/pqrs', 'PqrController@store');
+$router->get('/pqrs/{issue_id}', 'PqrController@show');
+

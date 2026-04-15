@@ -123,6 +123,24 @@ class MantisApi
     }
 
     /**
+     * @param array $body
+     * @return bool|string
+     */
+    public function createIssueRaw(array $body)
+    {
+        $this->buildHttpClient();
+        $headers = [
+            'Authorization: ' . $this->authorizationToken,
+            'Content-Type: application/json',
+        ];
+        $options = [
+            'headers' => $headers,
+            'body'    => json_encode($body),
+        ];
+        return $this->makeRequest('POST', 'issues', $options);
+    }
+
+    /**
      * @param $data
      * @return bool|string
      */

@@ -1,6 +1,8 @@
-/vendor
-/.idea
-Homestead.json
-Homestead.yaml
+vendor/
 .env
-.phpunit.result.cache
+*.log
+storage/logs/*.log
+storage/framework/cache/
+storage/framework/views/
+bootstrap/cache/
+node_modules/
