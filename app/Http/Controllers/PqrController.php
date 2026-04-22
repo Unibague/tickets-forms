@@ -103,12 +103,20 @@ class PqrController extends Controller
             ]);
 
             // Correo al usuario que radicó
-            Mail::to($data['email'])->send(new PqrUsuarioNotificacion($mailData));
+            try {
+                Mail::to($data['email'])->send(new PqrUsuarioNotificacion($mailData));
+            } catch (\Exception $mailErr) {
+                \Log::warning('No se pudo enviar correo al usuario: ' . $mailErr->getMessage());
+            }
 
             // Correo al líder: tomar el handler asignado en Mantis
-            $liderEmail = $this->mantisService->obtenerEmailHandler($issue['id'])
-                ?? env('PQR_LIDER_EMAIL', 'fspqr@unibague.edu.co');
-            Mail::to($liderEmail)->send(new PqrLiderNotificacion($mailData));
+            try {
+                $liderEmail = $this->mantisService->obtenerEmailHandler($issue['id'])
+                    ?? env('PQR_LIDER_EMAIL', 'fspqr@unibague.edu.co');
+                Mail::to($liderEmail)->send(new PqrLiderNotificacion($mailData));
+            } catch (\Exception $mailErr) {
+                \Log::warning('No se pudo enviar correo al líder: ' . $mailErr->getMessage());
+            }
 
             return response()->json([
                 'message'      => 'PQRS radicada exitosamente',
