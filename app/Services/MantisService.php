@@ -37,12 +37,16 @@ class MantisService
     {
         $area = self::AREAS_ENRUTAMIENTO[$data['area_enrutamiento']] ?? ['project' => 'SERVICIOS', 'categorias' => ['General']];
 
+        // Mantis espera la prioridad en inglés
+        $prioridadMap = ['Alta' => 'high', 'Media' => 'normal', 'Baja' => 'low'];
+        $prioridad    = $prioridadMap[$data['prioridad']] ?? 'normal';
+
         $body = [
             'summary'     => "[PQRS][{$data['tipo_solicitud']}] {$data['asunto']} - {$data['email']}",
             'description' => $this->buildDescription($data),
             'category'    => ['name' => $data['categoria'] ?? $area['categorias'][0]],
             'project'     => ['name' => $area['project']],
-            'priority'    => ['name' => $data['prioridad']],
+            'priority'    => ['name' => $prioridad],
         ];
 
         $response    = $this->mantisApi->createIssueRaw($body);
