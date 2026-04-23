@@ -40,20 +40,31 @@ class PqrController extends Controller
 
         $resultado = [];
         foreach ($proyectos as $nombre => $id) {
-            $raw      = file_get_contents(
-                env('MANTIS_BASE_URL') . '/api/rest/projects/' . $id,
-                false,
-                stream_context_create(['http' => [
-                    'header' => 'Authorization: ' . env('MANTIS_TOKEN'),
-                ]])
-            );
+            $ch = curl_init(env('MANTIS_BASE_URL') . '/api/rest/projects/' . $id);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_HTTPHEADER     => ['Authorization: ' . env('MANTIS_TOKEN')],
+            ]);
+            $raw  = curl_exec($ch);
+            curl_close($ch);
             $data = json_decode($raw, true);
-            // Los miembros vienen en projects[0] si se consulta por ID
-            $resultado[$nombre] = array_map(fn($u) => [
-                'id'    => $u['id'],
-                'name'  => $u['name'],
-                'email' => $u['email'] ?? null,
-            ], $data['projects'][0]['members'] ?? []);
+            $categorias = $data['projects'][0]['categories'] ?? [];
+
+            $lideres = [];
+            foreach ($categorias as $cat) {
+                if (!empty($cat['default_handler'])) {
+                    $handler = $cat['default_handler'];
+                    $lideres[$handler['id']] = [
+                        'id'        => $handler['id'],
+                        'name'      => $handler['name'],
+                        'real_name' => $handler['real_name'] ?? $handler['name'],
+                        'email'     => $handler['email'] ?? null,
+                        'categoria' => $cat['name'],
+                    ];
+                }
+            }
+            $resultado[$nombre] = array_values($lideres);
         }
 
         return response()->json($resultado);
