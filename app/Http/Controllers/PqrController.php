@@ -281,6 +281,18 @@ class PqrController extends Controller
                 ];
             }, $issue['notes'] ?? []);
 
+            // Extraer historial de cambios
+            $historial = array_map(function($h) {
+                return [
+                    'fecha'      => $h['created_at'] ?? null,
+                    'usuario'    => $h['user']['name'] ?? 'Sistema',
+                    'tipo'       => $h['type']['name'] ?? '',
+                    'campo'      => $h['field']['label'] ?? $h['message'] ?? '',
+                    'cambio'     => $h['change'] ?? null,
+                    'nota_id'    => $h['note']['id'] ?? null,
+                ];
+            }, $issue['history'] ?? []);
+
             return response()->json([
                 'id'                  => $issue['id'],
                 'asunto'              => $issue['summary'],
@@ -290,6 +302,7 @@ class PqrController extends Controller
                 'fecha_creacion'      => $issue['created_at'],
                 'fecha_actualizacion' => $issue['updated_at'],
                 'notas'               => $notas,
+                'historial'           => $historial,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 404);
