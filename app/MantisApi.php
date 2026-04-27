@@ -63,6 +63,20 @@ class MantisApi
         return $response;
     }
 
+    public function getAllUsers()
+    {
+        $this->buildHttpClient();
+        $headers = [
+            'Authorization: ' . $this->authorizationToken,
+            'Content-Type: application/json',
+        ];
+        $options = [
+            'headers' => $headers,
+            'body'    => json_encode(['page_size' => 200]),
+        ];
+        return $this->makeRequest('POST', 'users', $options);
+    }
+
     /**
      *
      */
@@ -146,7 +160,7 @@ class MantisApi
      */
     public function createIssue(array $request_data, int $user_issues_form_id)
     {
-        $url = 'https://tickets.unibague.edu.co/tickets-forms/conversions/';
+        $url = env('APP_URL', 'https://tickets.unibague.edu.co') . '/tickets-forms/conversions/';
 
         $customFields = null;
 
@@ -266,8 +280,8 @@ class MantisApi
     public function AddNoteToIssue(array $questions, array $answers, int $issue_id)
     {
         //lets see
-        $issueTransferUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeZYKy3Ich2_OgHiDyy5nA9SJJpvUmBMZl4rYtid7_7p6BkQQ/viewform?entry.2109776235=' . $issue_id;
-        $url_to_comment = "https://tickets.unibague.edu.co/tickets-forms/comments/issue/{$issue_id}/new";
+        $issueTransferUrl = env('MANTIS_TRANSFER_FORM_URL', 'https://docs.google.com/forms/d/e/1FAIpQLSeZYKy3Ich2_OgHiDyy5nA9SJJpvUmBMZl4rYtid7_7p6BkQQ/viewform') . '?entry.2109776235=' . $issue_id;
+        $url_to_comment = env('APP_URL', 'https://tickets.unibague.edu.co') . "/tickets-forms/comments/issue/{$issue_id}/new";
         $questionsAsText = $this->getQuestionsAsText($questions, $answers);
         $issueBody = "Respuestas proporcionadas por el usuario en el formulario: \n" .
             $questionsAsText . "\nURL para notificar comentarios al usuario: {$url_to_comment}"

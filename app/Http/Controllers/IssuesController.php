@@ -11,8 +11,15 @@ use Illuminate\Support\Facades\Log;
 
 class IssuesController extends Controller
 {
-    private $mantisBaseUrl = 'https://tickets.unibague.edu.co/tickets';
+    private string $mantisBaseUrl;
+    private string $mantisToken;
     private $createIssueData = [];
+
+    public function __construct()
+    {
+        $this->mantisBaseUrl = env('MANTIS_BASE_URL', 'https://tickets.unibague.edu.co/tickets');
+        $this->mantisToken   = env('MANTIS_TOKEN', '');
+    }
 
 
 /*    public function test()
@@ -23,21 +30,21 @@ class IssuesController extends Controller
 
     public function index()
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
         $response = $mantisApi->getAllIssues();
         return response()->json(json_decode($response));
     }
 
     public function indexCustomFields()
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
         $response = $mantisApi->getCustomFields();
         return response()->json(json_decode($response));
     }
 
     public function show(int $issue_id)
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
         $response = $mantisApi->getIssueById($issue_id);
         return response()->json(json_decode($response));
         return DB::table('tickets_convertforms_conversions')->get();
@@ -49,7 +56,7 @@ class IssuesController extends Controller
             ->where('code_user', '=', $code_user)
             ->whereNotNull('issue_id')
             ->latest()->get();
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
 
         $full_response = [];
         //Receive all the user issue's as object
@@ -88,7 +95,7 @@ class IssuesController extends Controller
             ->where('code_user', '=', $code_user)
             ->whereNotNull('issue_id')
             ->latest()->get();
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
 
         $full_response = [];
         //Receive all the user issue's as object
@@ -147,7 +154,7 @@ class IssuesController extends Controller
                 'updated_at' => $time
             ]);
 
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
         $issue_object = json_decode($issue);
         $issue_id = $issue_object->issue->id;
@@ -253,7 +260,7 @@ class IssuesController extends Controller
 
     public function addUserNoteToIssue($issue_id, Request $request): \Illuminate\Http\JsonResponse
     {
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
 
         $questions = $request->input('questions');
         $answers = $request->input('answers');
@@ -282,7 +289,7 @@ class IssuesController extends Controller
         $user_email = $user_issues->code_user;
         $message = $request->input('message');
         //Connect to mantis API to add the note.
-        $mantisApi = new MantisApi($this->mantisBaseUrl, 'UQtABq7GR0OevYz7zRvuQIueRcddQAx8');
+        $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
         $mantisApi->postIssueNote($issue_id, 'Mensaje añadido por la persona asignada a resolver la solicitud y enviado al usuario via correo electrónico: ' . $message);
 
 //        \Illuminate\Support\Facades\Mail::to($user_email)->send(new \App\Mail\userMessageNotification($issue_id, $message));

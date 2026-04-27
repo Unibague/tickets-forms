@@ -64,8 +64,42 @@ class MantisService
     {
         $raw      = $this->mantisApi->getIssueById($issueId);
         $response = json_decode($raw, true);
-
         return $response['issues'][0]['handler']['email'] ?? null;
+    }
+
+    // Agregar nota a un issue via SOAP
+    public function agregarNota(int $issueId, string $texto): void
+    {
+        $soapUrl = env('MANTIS_SOAP_URL');
+        $user    = env('MANTIS_SOAP_USER');
+        $pass    = env('MANTIS_SOAP_PASS');
+
+        $xml = '<?xml version="1.0" encoding="utf-8"?>'
+             . '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'
+             . '<soap:Body>'
+             . '<mc_issue_note_add xmlns="http://futureware.biz/mantisconnect">'
+             . '<username>' . htmlspecialchars($user) . '</username>'
+             . '<password>' . htmlspecialchars($pass) . '</password>'
+             . '<issue_id>' . $issueId . '</issue_id>'
+             . '<note><text>' . htmlspecialchars($texto) . '</text><view_state><name>public</name></view_state></note>'
+             . '</mc_issue_note_add>'
+             . '</soap:Body>'
+             . '</soap:Envelope>';
+
+        $ch = curl_init($soapUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $xml,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: "http://futureware.biz/mantisconnect/mc_issue_note_add"',
+            ],
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
     }
 
     public function obtenerPqr(string $issueId): array

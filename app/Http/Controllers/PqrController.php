@@ -18,6 +18,79 @@ class PqrController extends Controller
         $this->mantisService = $mantisService;
     }
 
+    // GET /pqrs/usuarios — todos los usuarios via SOAP mc_project_get_users con cache 1h
+    public function usuarios()
+    {
+        $resultado = (function () {
+            $soapUrl  = env('MANTIS_SOAP_URL');
+            $user     = env('MANTIS_SOAP_USER');
+            $pass     = env('MANTIS_SOAP_PASS');
+            $vistos   = [];
+            $usuarios = [];
+
+            // project_id=0 trae todos los usuarios del sistema
+            $proyectos = [0];
+
+            foreach ($proyectos as $projectId) {
+                $xml = '<?xml version="1.0" encoding="utf-8"?>'
+                     . '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'
+                     . '<soap:Body>'
+                     . '<mc_project_get_users xmlns="http://futureware.biz/mantisconnect">'
+                     . '<username>' . htmlspecialchars($user) . '</username>'
+                     . '<password>' . htmlspecialchars($pass) . '</password>'
+                     . '<project_id>' . $projectId . '</project_id>'
+                     . '<access>10</access>'
+                     . '</mc_project_get_users>'
+                     . '</soap:Body>'
+                     . '</soap:Envelope>';
+
+                $ch = curl_init($soapUrl);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $xml,
+                    CURLOPT_HTTPHEADER     => [
+                        'Content-Type: text/xml; charset=utf-8',
+                        'SOAPAction: "http://futureware.biz/mantisconnect/mc_project_get_users"',
+                    ],
+                ]);
+                $raw  = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($code !== 200 || !$raw) continue;
+
+                // Usar DOMDocument para parsear la respuesta SOAP
+                libxml_use_internal_errors(true);
+                $doc = new \DOMDocument();
+                if (!$doc->loadXML($raw)) continue;
+                $nodeList = $doc->getElementsByTagName('item');
+                $items    = iterator_to_array($nodeList);
+                foreach ($items as $item) {
+                    $id    = (int)($item->getElementsByTagName('id')->item(0)->nodeValue ?? 0);
+                    $email = $item->getElementsByTagName('email')->item(0)->nodeValue ?? '';
+                    $name  = $item->getElementsByTagName('name')->item(0)->nodeValue ?? '';
+                    $rname = $item->getElementsByTagName('real_name')->item(0)->nodeValue ?? '';
+                    if (empty($email) || empty($name) || isset($vistos[$email])) continue;
+                    $vistos[$email] = true;
+                    $usuarios[] = [
+                        'id'       => $id,
+                        'username' => $name,
+                        'nombre'   => !empty($rname) ? $rname : $name,
+                        'email'    => $email,
+                    ];
+                }
+            }
+
+            usort($usuarios, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
+            return array_values($usuarios);
+        })();
+        return response()->json($resultado);
+    }
+
+    
     // GET /pqrs/form-data
     public function formData()
     {
@@ -134,6 +207,48 @@ class PqrController extends Controller
                 'issue_id'     => $issue['id'],
                 'fecha_limite' => $fechaLimite,
             ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // PATCH /pqrs/{issue_id} — actualizar estado, nota y responsable en Mantis
+    public function update(Request $request, string $issue_id)
+    {
+        try {
+            $estado      = $request->input('estado');
+            $nota        = $request->input('nota');
+            $responsable = $request->input('responsable');
+            $prioridad   = $request->input('prioridad');
+
+            $prioridadMap = ['Alta' => 'high', 'Media' => 'normal', 'Baja' => 'low'];
+            $body = [];
+            if ($prioridad)   $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
+            if ($responsable) $body['handler']  = ['name' => $responsable];
+
+            if (!empty($body)) {
+                $ch = curl_init(env('MANTIS_BASE_URL') . '/api/rest/issues/' . $issue_id);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_CUSTOMREQUEST  => 'PATCH',
+                    CURLOPT_POSTFIELDS     => json_encode($body),
+                    CURLOPT_HTTPHEADER     => [
+                        'Authorization: ' . env('MANTIS_TOKEN'),
+                        'Content-Type: application/json',
+                    ],
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+            }
+
+            // Agregar nota con el cambio de estado
+            if ($nota || $estado) {
+                $texto = $nota ?? "Estado actualizado a: {$estado}";
+                $this->mantisService->agregarNota((int)$issue_id, $texto);
+            }
+
+            return response()->json(['message' => 'Issue actualizado en Mantis']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

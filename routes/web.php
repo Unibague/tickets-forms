@@ -38,6 +38,8 @@ $router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUs
 /* RUTAS PQRS */
 $router->get('/pqrs/form-data', 'PqrController@formData');
 $router->get('/pqrs/lideres',   'PqrController@lideres');
-$router->post('/pqrs', 'PqrController@store');
-$router->get('/pqrs/{issue_id}', 'PqrController@show');
+$router->get('/pqrs/usuarios',  'PqrController@usuarios');
+$router->post('/pqrs',              'PqrController@store');
+$router->patch('/pqrs/{issue_id}',  'PqrController@update');
+$router->get('/pqrs/{issue_id}',    'PqrController@show');
 
