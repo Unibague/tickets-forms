@@ -222,9 +222,11 @@ class PqrController extends Controller
             $prioridad   = $request->input('prioridad');
 
             $prioridadMap = ['Alta' => 'high', 'Media' => 'normal', 'Baja' => 'low'];
+            $estadoMap    = ['Cerrado' => 'closed', 'Resuelto' => 'resolved'];
             $body = [];
-            if ($prioridad)   $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
-            if ($responsable) $body['handler']  = ['name' => $responsable];
+            if ($prioridad)              $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
+            if ($responsable)            $body['handler']  = ['name' => $responsable];
+            if (isset($estadoMap[$estado])) $body['status'] = ['name' => $estadoMap[$estado]];
 
             if (!empty($body)) {
                 $ch = curl_init(env('MANTIS_BASE_URL') . '/api/rest/issues/' . $issue_id);
