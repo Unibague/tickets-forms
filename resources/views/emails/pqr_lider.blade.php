@@ -1,75 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="font-size: 15px; background-color: #ffffff;">
-<section style="width:80%; padding: 5% 10%">
-    <div style="background: #F0F9FE; padding: 5% 5%; border-radius: 15px; box-shadow: 0 0 5px #3d4852">
+<body style="margin:0; padding:0; background-color:#f4f7fb; font-family: Arial, Helvetica, sans-serif; font-size:15px;">
 
-        <h3 style="color: #2c3e50; margin-bottom: 20px;"> Nueva PQRS Radicada</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fb; padding: 30px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.10);">
 
-        <p>Se ha radicado una nueva PQRS en el sistema. A continuación el detalle:</p>
+                {{-- Encabezado --}}
+                <tr>
+                    <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); padding: 32px 36px;">
+                        <p style="margin:0; font-size:13px; color:#bfdbfe; letter-spacing:1px; text-transform:uppercase; font-weight:600;">Universidad de Ibagué · Centro de Servicios</p>
+                        <h1 style="margin: 8px 0 0; color:#ffffff; font-size:22px; font-weight:700;">Nueva PQRS Radicada</h1>
+                    </td>
+                </tr>
 
-        <table style="width:100%; border-collapse: collapse; margin-top: 15px;">
-            <tr style="background:#dbeafe;">
-                <td style="padding:8px; font-weight:bold; width:40%;">Número de radicado</td>
-                <td style="padding:8px;"><strong>{{ $data['radicado'] }}</strong></td>
-            </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">ID en sistema de tickets</td>
-                <td style="padding:8px;">#{{ $data['issue_id'] }}</td>
-            </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">Tipo de solicitud</td>
-                <td style="padding:8px;">{{ $data['tipo_solicitud'] }}</td>
-            </tr>
-            <tr style="background:#f8fafc;">
-                <td style="padding:8px; font-weight:bold;">Tipo de usuario</td>
-                <td style="padding:8px;">{{ $data['tipo_usuario'] }}</td>
-            </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">Nombre del solicitante</td>
-                <td style="padding:8px;">{{ $data['nombre'] }}</td>
-            </tr>
-            <tr style="background:#f8fafc;">
-                <td style="padding:8px; font-weight:bold;">Correo del solicitante</td>
-                <td style="padding:8px;">{{ $data['email'] }}</td>
-            </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">Área responsable</td>
-                <td style="padding:8px;">{{ $data['area_enrutamiento'] }}</td>
-            </tr>
-            <tr style="background:#f8fafc;">
-                <td style="padding:8px; font-weight:bold;">Prioridad</td>
-                <td style="padding:8px;">{{ $data['prioridad'] }}</td>
-            </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">Asunto</td>
-                <td style="padding:8px;">{{ $data['asunto'] }}</td>
-            </tr>
-            <tr style="background:#f8fafc;">
-                <td style="padding:8px; font-weight:bold;">Descripción</td>
-                <td style="padding:8px;">{{ $data['descripcion'] }}</td>
-            </tr>
-            <tr>
-                <td style="padding:8px; font-weight:bold;">Fecha de radicado</td>
-                <td style="padding:8px;">{{ $data['fecha'] }}</td>
-            </tr>
-            <tr style="background:#fff3cd;">
-                <td style="padding:8px; font-weight:bold;">Fecha límite de respuesta (5 días hábiles)</td>
-                <td style="padding:8px;"><strong>{{ $data['fecha_limite'] }}</strong></td>
-            </tr>
-        </table>
+                {{-- Intro --}}
+                <tr>
+                    <td style="padding: 28px 36px 0;">
+                        <p style="margin:0; color:#374151; font-size:15px;">
+                            Se ha radicado una nueva PQRS en el sistema. A continuación el detalle:
+                        </p>
+                    </td>
+                </tr>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="https://tickets.unibague.edu.co/tickets/view_all_bug_page.php"
-               style="background-color:#2563eb; color:#fff; padding:12px 25px; border-radius:8px; text-decoration:none; font-weight:bold;">
-                Ver en Mantis
-            </a>
-        </div>
+                {{-- Tabla de datos --}}
+                <tr>
+                    <td style="padding: 20px 36px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px; overflow:hidden; border: 1px solid #e5e7eb;">
+                            <tr>
+                                <td style="padding:11px 14px; background:#eff6ff; font-weight:700; color:#1e3a5f; width:45%; border-bottom:1px solid #e5e7eb;">Número de radicado</td>
+                                <td style="padding:11px 14px; background:#eff6ff; color:#1e40af; font-weight:700; border-bottom:1px solid #e5e7eb;">{{ $data['radicado'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">ID en sistema de tickets</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">#{{ $data['issue_id'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Tipo de solicitud</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['tipo_solicitud'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Tipo de usuario</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['tipo_usuario'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Nombre del solicitante</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['nombre'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Correo del solicitante</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['email'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Prioridad</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['prioridad'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Asunto</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['asunto'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Descripción</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['descripcion'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Fecha de radicado</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['fecha'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:11px 14px; background:#fffbeb; font-weight:700; color:#92400e;">Fecha límite de respuesta</td>
+                                <td style="padding:11px 14px; background:#fffbeb; color:#92400e; font-weight:700;">{{ $data['fecha_limite'] }} <span style="font-weight:400; font-size:13px;">(5 días hábiles)</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-    </div>
-</section>
+                {{-- Botón Ver en Mantis --}}
+                <tr>
+                    <td style="padding: 0 36px 28px; text-align:center;">
+                        <a href="https://tickets.unibague.edu.co/tickets/view_all_bug_page.php"
+                           style="display:inline-block; background:#2563eb; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
+                            Ver en Mantis
+                        </a>
+                    </td>
+                </tr>
+
+                {{-- Pie de página --}}
+                <tr>
+                    <td style="background:#f8fafc; border-top:1px solid #e5e7eb; padding: 20px 36px; text-align:center;">
+                        <p style="margin:0; font-size:13px; color:#6b7280;">
+                            Este mensaje es generado automáticamente por el sistema de PQRS.<br>
+                            <strong style="color:#374151;">Universidad de Ibagué — Centro de Servicios</strong>
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>

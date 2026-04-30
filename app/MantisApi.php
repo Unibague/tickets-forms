@@ -154,6 +154,32 @@ class MantisApi
         return $this->makeRequest('POST', 'issues', $options);
     }
 
+    public function deleteIssue(int $issueId)
+    {
+        $this->buildHttpClient();
+        $headers = [
+            'Authorization: ' . $this->authorizationToken,
+            'Content-Type: application/json',
+        ];
+        $options = ['headers' => $headers];
+        return $this->makeRequest('DELETE', 'issues/' . $issueId, $options);
+    }
+
+    public function updateIssueRaw(int $issueId, array $body)
+    {
+        $this->buildHttpClient();
+        $headers = [
+            'Authorization: ' . $this->authorizationToken,
+            'Content-Type: application/json',
+        ];
+        $options = [
+            'headers' => $headers,
+            'body'    => json_encode($body),
+        ];
+
+        return $this->makeRequest('PATCH', 'issues/' . $issueId, $options);
+    }
+
     /**
      * @param $data
      * @return bool|string

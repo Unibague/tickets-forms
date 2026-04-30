@@ -14,6 +14,39 @@ class MantisService
 
     const PRIORIDADES = ['Alta', 'Media', 'Baja'];
 
+    const ESTADOS_PQR = ['Recibido', 'En revisión', 'Se necesitan más datos', 'Resuelto', 'Cerrado'];
+
+    private const ESTADO_MANTIS_POR_PQR = [
+        'recibido' => 'new',
+        'nuevo' => 'new',
+        'new' => 'new',
+        'en revision' => 'assigned',
+        'en revisión' => 'assigned',
+        'asignado' => 'assigned',
+        'assigned' => 'assigned',
+        'se necesitan mas datos' => 'feedback',
+        'se necesitan más datos' => 'feedback',
+        'necesita mas datos' => 'feedback',
+        'necesita más datos' => 'feedback',
+        'pendiente informacion' => 'feedback',
+        'pendiente información' => 'feedback',
+        'feedback' => 'feedback',
+        'resuelto' => 'resolved',
+        'resolved' => 'resolved',
+        'cerrado' => 'closed',
+        'closed' => 'closed',
+    ];
+
+    private const ESTADO_PQR_POR_MANTIS = [
+        'new' => 'Recibido',
+        'acknowledged' => 'En revisión',
+        'confirmed' => 'En revisión',
+        'assigned' => 'En revisión',
+        'feedback' => 'Se necesitan más datos',
+        'resolved' => 'Resuelto',
+        'closed' => 'Cerrado',
+    ];
+
     // Área → proyecto Mantis + subcategorías disponibles
     const AREAS_ENRUTAMIENTO = [
         'Financiero'             => ['project' => 'FINANCIERA', 'categorias' => ['FACT. ELEC Y CTAS. COBRO', 'General']],
@@ -57,6 +90,79 @@ class MantisService
         }
 
         return $issueObject['issue'];
+    }
+
+    public static function estadoMantisDesdePqr(?string $estado, bool $tieneResponsable = false): ?string
+    {
+        if ($estado === null || trim($estado) === '') {
+            return $tieneResponsable ? 'assigned' : null;
+        }
+
+        $estadoNormalizado = self::normalizarEstado($estado);
+
+        if ($estadoNormalizado === 'todos los estados') {
+            return null;
+        }
+
+        if (!isset(self::ESTADO_MANTIS_POR_PQR[$estadoNormalizado])) {
+            throw new \InvalidArgumentException(
+                'Estado de PQRS no válido. Use: ' . implode(', ', self::ESTADOS_PQR)
+            );
+        }
+
+        $estadoMantis = self::ESTADO_MANTIS_POR_PQR[$estadoNormalizado];
+
+        if ($tieneResponsable && $estadoMantis === 'new') {
+            return 'assigned';
+        }
+
+        return $estadoMantis;
+    }
+
+    public static function estadoPqrDesdeMantis(?string $statusName, ?string $statusLabel = null): string
+    {
+        $estadoNormalizado = self::normalizarEstado($statusName ?? '');
+
+        if (isset(self::ESTADO_PQR_POR_MANTIS[$estadoNormalizado])) {
+            return self::ESTADO_PQR_POR_MANTIS[$estadoNormalizado];
+        }
+
+        $labelNormalizado = self::normalizarEstado($statusLabel ?? '');
+
+        if (isset(self::ESTADO_MANTIS_POR_PQR[$labelNormalizado])) {
+            return self::ESTADO_PQR_POR_MANTIS[self::ESTADO_MANTIS_POR_PQR[$labelNormalizado]];
+        }
+
+        return $statusLabel ?: ($statusName ?: 'Recibido');
+    }
+
+    public function eliminarIssue(int $issueId): void
+    {
+        $response = $this->mantisApi->deleteIssue($issueId);
+
+        // DELETE devuelve 204 sin cuerpo; curl_exec retorna "" o false en error
+        if ($response === false) {
+            throw new \RuntimeException('No se pudo conectar con Mantis al eliminar el issue.');
+        }
+
+        if (trim($response) !== '') {
+            $decoded = json_decode($response, true);
+            if (isset($decoded['code'])) {
+                throw new \RuntimeException('Mantis rechazó la eliminación: ' . ($decoded['message'] ?? $response));
+            }
+        }
+    }
+
+    public function actualizarIssue(int $issueId, array $body): array
+    {
+        $response = $this->mantisApi->updateIssueRaw($issueId, $body);
+        $decoded = json_decode($response, true);
+
+        if (isset($decoded['code'])) {
+            throw new \RuntimeException('No se pudo actualizar el issue en Mantis: ' . ($decoded['message'] ?? $response));
+        }
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     // Obtener el email del handler (líder asignado) de un issue
@@ -127,5 +233,27 @@ class MantisService
             "Prioridad: {$data['prioridad']}",
             "Descripción:\n{$data['descripcion']}",
         ]);
+    }
+
+    private static function normalizarEstado(string $estado): string
+    {
+        $estado = trim($estado);
+
+        // Normalize NFC if intl extension available
+        if (class_exists('\Normalizer')) {
+            $estado = \Normalizer::normalize($estado, \Normalizer::NFC) ?: $estado;
+        }
+
+        $estado = strtr($estado, [
+            // NFC precompuesto
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U', 'Ñ' => 'N',
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n',
+            // NFD: eliminar marcas combinadoras (U+0301 agudo, U+0308 diéresis, U+0303 tilde)
+            "\xCC\x81" => '', "\xCC\x88" => '', "\xCC\x83" => '',
+        ]);
+
+        $estado = mb_strtolower(str_replace(['_', '-'], ' ', $estado), 'UTF-8');
+
+        return preg_replace('/\s+/', ' ', $estado) ?? $estado;
     }
 }

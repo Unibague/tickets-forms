@@ -98,6 +98,7 @@ class PqrController extends Controller
             'tipos_solicitud'    => MantisService::TIPOS_SOLICITUD,
             'tipos_usuario'      => MantisService::TIPOS_USUARIO,
             'prioridades'        => MantisService::PRIORIDADES,
+            'estados_pqr'        => MantisService::ESTADOS_PQR,
             'areas_enrutamiento' => MantisService::AREAS_ENRUTAMIENTO,
         ]);
     }
@@ -222,35 +223,44 @@ class PqrController extends Controller
             $prioridad   = $request->input('prioridad');
 
             $prioridadMap = ['Alta' => 'high', 'Media' => 'normal', 'Baja' => 'low'];
-            $estadoMap    = ['Cerrado' => 'closed', 'Resuelto' => 'resolved'];
             $body = [];
-            if ($prioridad)              $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
-            if ($responsable)            $body['handler']  = ['name' => $responsable];
-            if (isset($estadoMap[$estado])) $body['status'] = ['name' => $estadoMap[$estado]];
+            $handler = $this->resolverHandlerMantis($responsable);
+            $estadoMantis = MantisService::estadoMantisDesdePqr($estado, $handler !== null);
+
+            if ($prioridad)     $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
+            if ($handler)       $body['handler']  = $handler;
+            if ($estadoMantis)  $body['status']   = ['name' => $estadoMantis];
 
             if (!empty($body)) {
-                $ch = curl_init(env('MANTIS_BASE_URL') . '/api/rest/issues/' . $issue_id);
-                curl_setopt_array($ch, [
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_CUSTOMREQUEST  => 'PATCH',
-                    CURLOPT_POSTFIELDS     => json_encode($body),
-                    CURLOPT_HTTPHEADER     => [
-                        'Authorization: ' . env('MANTIS_TOKEN'),
-                        'Content-Type: application/json',
-                    ],
-                ]);
-                curl_exec($ch);
-                curl_close($ch);
+                $this->mantisService->actualizarIssue((int)$issue_id, $body);
             }
 
             // Agregar nota con el cambio de estado
-            if ($nota || $estado) {
-                $texto = $nota ?? "Estado actualizado a: {$estado}";
+            if ($nota || $estadoMantis) {
+                $texto = $nota ?? "Estado actualizado a: " . MantisService::estadoPqrDesdeMantis($estadoMantis);
                 $this->mantisService->agregarNota((int)$issue_id, $texto);
             }
 
-            return response()->json(['message' => 'Issue actualizado en Mantis']);
+            return response()->json([
+                'message'       => 'Issue actualizado en Mantis',
+                'estado_mantis' => $estadoMantis,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // DELETE /pqrs/{issue_id} — eliminar un issue en Mantis
+    public function destroy(string $issue_id)
+    {
+        try {
+            $this->mantisService->eliminarIssue((int)$issue_id);
+
+            DB::table('pqrs')->where('issue_id', (int)$issue_id)->delete();
+
+            return response()->json(['message' => 'Issue eliminado correctamente'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -298,7 +308,10 @@ class PqrController extends Controller
             return response()->json([
                 'id'                  => $issue['id'],
                 'asunto'              => $issue['summary'],
-                'estado'              => $issue['status']['label'] ?? $issue['status']['name'],
+                'estado'              => MantisService::estadoPqrDesdeMantis(
+                    $issue['status']['name'] ?? null,
+                    $issue['status']['label'] ?? null
+                ),
                 'prioridad'           => $prioridad,
                 'area'                => $issue['category']['name'] ?? null,
                 'fecha_creacion'      => $issue['created_at'],
@@ -323,6 +336,32 @@ class PqrController extends Controller
             }
         }
         return $fecha->format('d/m/Y');
+    }
+
+    private function resolverHandlerMantis($responsable): ?array
+    {
+        if (empty($responsable)) {
+            return null;
+        }
+
+        if (is_array($responsable)) {
+            if (!empty($responsable['id'])) {
+                return ['id' => (int)$responsable['id']];
+            }
+
+            $nombre = $responsable['username'] ?? $responsable['name'] ?? null;
+            return $nombre ? ['name' => trim($nombre)] : null;
+        }
+
+        $responsable = trim((string)$responsable);
+
+        if ($responsable === '') {
+            return null;
+        }
+
+        return is_numeric($responsable)
+            ? ['id' => (int)$responsable]
+            : ['name' => $responsable];
     }
 
     protected function validarPqr(Request $request): array
