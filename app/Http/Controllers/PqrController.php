@@ -397,4 +397,45 @@ class PqrController extends Controller
 
         return $errors;
     }
+
+    // POST /pqrs/notificar-asignacion
+    public function notificarAsignacion(Request $request)
+    {
+        try {
+            $emailResp   = $request->input('email_responsable');
+            $responsable = $request->input('responsable', 'Responsable');
+            $radicado    = $request->input('radicado');
+            $issueId     = $request->input('issue_id');
+
+            if (!$emailResp || !$radicado) {
+                return response()->json(['error' => 'Faltan datos requeridos'], 400);
+            }
+
+            $pqr = \DB::table('pqrs')->where('issue_id', $issueId)->first();
+            if (!$pqr) {
+                return response()->json(['error' => 'PQRS no encontrada en la DB local'], 404);
+            }
+
+            $mailData = [
+                'responsable'      => $responsable,
+                'radicado'         => $radicado,
+                'issue_id'         => $issueId,
+                'tipo_solicitud'   => $pqr->tipo_solicitud,
+                'nombre'           => $pqr->nombre,
+                'email'            => $pqr->email,
+                'prioridad'        => $pqr->prioridad,
+                'asunto'           => $pqr->asunto,
+                'area_responsable' => $pqr->area_enrutamiento,
+                'observaciones'    => $request->input('observaciones', ''),
+                'fecha_limite'     => $this->calcularFechaLimite(5),
+            ];
+
+            Mail::to($emailResp)->send(new \App\Mail\PqrAsignacionNotificacion($mailData));
+
+            return response()->json(['message' => 'Correo enviado al responsable']);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo de asignacion: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo enviar el correo: ' . $e->getMessage()], 500);
+        }
+    }
 }

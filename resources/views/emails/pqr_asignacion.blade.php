@@ -15,7 +15,7 @@
                 <tr>
                     <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); padding: 32px 36px;">
                         <p style="margin:0; font-size:13px; color:#bfdbfe; letter-spacing:1px; text-transform:uppercase; font-weight:600;">Universidad de Ibagué · Centro de Servicios</p>
-                        <h1 style="margin: 8px 0 0; color:#ffffff; font-size:22px; font-weight:700;">Nueva PQRS Radicada</h1>
+                        <h1 style="margin: 8px 0 0; color:#ffffff; font-size:22px; font-weight:700;">PQRS Asignada</h1>
                     </td>
                 </tr>
 
@@ -23,7 +23,7 @@
                 <tr>
                     <td style="padding: 28px 36px 0;">
                         <p style="margin:0; color:#374151; font-size:15px;">
-                            Se ha radicado una nueva PQRS en el sistema. A continuación el detalle:
+                            Hola <strong>{{ $data['responsable'] }}</strong>, se te ha asignado la siguiente PQRS para su atención:
                         </p>
                     </td>
                 </tr>
@@ -45,56 +45,50 @@
                                 <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['tipo_solicitud'] }}</td>
                             </tr>
                             <tr>
-                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Tipo de usuario</td>
-                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['tipo_usuario'] }}</td>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Solicitante</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['nombre'] }}</td>
                             </tr>
                             <tr>
-                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Nombre del solicitante</td>
-                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['nombre'] }}</td>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Correo solicitante</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['email'] }}</td>
                             </tr>
                             <tr>
-                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Correo del solicitante</td>
-                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['email'] }}</td>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Prioridad</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['prioridad'] }}</td>
                             </tr>
                             <tr>
-                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Prioridad</td>
-                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['prioridad'] }}</td>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Asunto</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['asunto'] }}</td>
                             </tr>
                             <tr>
-                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Asunto</td>
-                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['asunto'] }}</td>
+                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Área responsable</td>
+                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['area_responsable'] }}</td>
                             </tr>
+                            @if(!empty($data['observaciones']))
                             <tr>
-                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Descripción</td>
-                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['descripcion'] }}</td>
+                                <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Observaciones</td>
+                                <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['observaciones'] }}</td>
                             </tr>
+                            @endif
                             <tr>
-                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Fecha de radicado</td>
-                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['fecha'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:11px 14px; background:#fffbeb; font-weight:700; color:#92400e;">Fecha límite de respuesta</td>
+                                <td style="padding:11px 14px; background:#fffbeb; font-weight:700; color:#92400e;">Fecha límite</td>
                                 <td style="padding:11px 14px; background:#fffbeb; color:#92400e; font-weight:700;">{{ $data['fecha_limite'] }} <span style="font-weight:400; font-size:13px;">(5 días hábiles)</span></td>
                             </tr>
                         </table>
                     </td>
                 </tr>
 
-                {{-- Botones --}}
+                {{-- Botón Ver en Mantis --}}
                 <tr>
                     <td style="padding: 0 36px 28px; text-align:center;">
-                        <a href="https://pqrs.unibague.edu.co/admin/gestion"
-                           style="display:inline-block; background:#2563eb; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px; margin-right:10px;">
+                        <a href="https://tickets.unibague.edu.co/tickets/my_view_page.php"
+                           style="display:inline-block; background:#2563eb; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
                             Ver en Mantis
-                        </a>
-                        <a href="{{ env('PQRS_APP_URL', 'http://localhost:8091') }}/admin"
-                           style="display:inline-block; background:#16a34a; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
-                            Asignar PQRS
                         </a>
                     </td>
                 </tr>
 
-                {{-- Pie de página --}}
+                {{-- Pie --}}
                 <tr>
                     <td style="background:#f8fafc; border-top:1px solid #e5e7eb; padding: 20px 36px; text-align:center;">
                         <p style="margin:0; font-size:13px; color:#6b7280;">

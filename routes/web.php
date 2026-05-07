@@ -39,8 +39,9 @@ $router->get('/comments/issue/{issue_id}/new', 'IssuesController@sendMessageToUs
 $router->get('/pqrs/form-data', 'PqrController@formData');
 $router->get('/pqrs/lideres',   'PqrController@lideres');
 $router->get('/pqrs/usuarios',  'PqrController@usuarios');
-$router->post('/pqrs',              'PqrController@store');
-$router->patch('/pqrs/{issue_id}',   'PqrController@update');
+$router->post('/pqrs',                     'PqrController@store');
+$router->post('/pqrs/notificar-asignacion', 'PqrController@notificarAsignacion');
+$router->patch('/pqrs/{issue_id}',          'PqrController@update');
 $router->delete('/pqrs/{issue_id}',  'PqrController@destroy');
 $router->get('/pqrs/{issue_id}',     'PqrController@show');
 
