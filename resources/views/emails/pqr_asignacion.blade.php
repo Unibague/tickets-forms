@@ -79,14 +79,7 @@
                 </tr>
 
                 {{-- Botón Ver en Mantis --}}
-                <tr>
-                    <td style="padding: 0 36px 28px; text-align:center;">
-                        <a href="https://tickets.unibague.edu.co/tickets/my_view_page.php"
-                           style="display:inline-block; background:#2563eb; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
-                            Ver en Mantis
-                        </a>
-                    </td>
-                </tr>
+
 
                 {{-- Pie --}}
                 <tr>
