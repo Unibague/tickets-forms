@@ -75,7 +75,7 @@ class MantisService
         $prioridad    = $prioridadMap[$data['prioridad']] ?? 'normal';
 
         $body = [
-            'summary'     => "[PQRS][{$data['tipo_solicitud']}] {$data['asunto']} - {$data['email']}",
+            'summary'     => "[PQRS][{$data['tipo_solicitud']}][{$data['area_enrutamiento']}] {$data['asunto']} - {$data['email']}",
             'description' => $this->buildDescription($data),
             'category'    => ['name' => $data['categoria'] ?? $area['categorias'][0]],
             'project'     => ['name' => $area['project']],

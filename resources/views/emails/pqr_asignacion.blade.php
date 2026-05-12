@@ -23,7 +23,12 @@
                 <tr>
                     <td style="padding: 28px 36px 0;">
                         <p style="margin:0; color:#374151; font-size:15px;">
-                            Hola <strong>{{ $data['responsable'] }}</strong>, se te ha asignado la siguiente PQRS para su atención:
+                            @if(!empty($data['es_copia']))
+                                <strong>Copia — Orden asignada a {{ $data['responsable'] }}</strong>
+                            @else
+                                <strong>Orden asignada a {{ $data['responsable'] }}</strong><br><br>
+                                Se te ha asignado la siguiente PQRS para su atención:
+                            @endif
                         </p>
                     </td>
                 </tr>
@@ -70,15 +75,21 @@
                                 <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['observaciones'] }}</td>
                             </tr>
                             @endif
-                            <tr>
-                                <td style="padding:11px 14px; background:#fffbeb; font-weight:700; color:#92400e;">Fecha límite</td>
-                                <td style="padding:11px 14px; background:#fffbeb; color:#92400e; font-weight:700;">{{ $data['fecha_limite'] }} <span style="font-weight:400; font-size:13px;">(5 días hábiles)</span></td>
-                            </tr>
                         </table>
                     </td>
                 </tr>
 
-                {{-- Botón Ver en Mantis --}}
+                {{-- Botones --}}
+                @if(empty($data['es_copia']))
+                <tr>
+                    <td style="padding: 0 36px 28px; text-align:center;">
+                        <a href="{{ env('PQRS_APP_URL', 'http://localhost:8091') }}/admin"
+                           style="display:inline-block; background:#16a34a; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
+                            Ir a PQRS
+                        </a>
+                    </td>
+                </tr>
+                @endif
 
 
                 {{-- Pie --}}

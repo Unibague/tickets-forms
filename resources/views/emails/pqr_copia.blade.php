@@ -15,7 +15,7 @@
                 <tr>
                     <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); padding: 32px 36px;">
                         <p style="margin:0; font-size:13px; color:#bfdbfe; letter-spacing:1px; text-transform:uppercase; font-weight:600;">Universidad de Ibagué · Centro de Servicios</p>
-                        <h1 style="margin: 8px 0 0; color:#ffffff; font-size:22px; font-weight:700;">Nueva PQRS Radicada</h1>
+                        <h1 style="margin: 8px 0 0; color:#ffffff; font-size:22px; font-weight:700;">Copia — PQRS Radicada</h1>
                     </td>
                 </tr>
 
@@ -23,7 +23,7 @@
                 <tr>
                     <td style="padding: 28px 36px 0;">
                         <p style="margin:0; color:#374151; font-size:15px;">
-                            Se ha radicado una nueva PQRS en el sistema. A continuación el detalle:
+                            <strong>{{ $data['nombre'] }}</strong> ha radicado una nueva PQRS en el sistema. Este correo es una copia informativa.
                         </p>
                     </td>
                 </tr>
@@ -68,21 +68,8 @@
                                 <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Descripción</td>
                                 <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['descripcion'] }}</td>
                             </tr>
-                            <tr>
-                                <td style="padding:11px 14px; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Fecha de radicado</td>
-                                <td style="padding:11px 14px; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['fecha'] }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
 
-                {{-- Botones --}}
-                <tr>
-                    <td style="padding: 0 36px 28px; text-align:center;">
-                        <a href="{{ env('PQRS_APP_URL', 'http://localhost:8091') }}/admin"
-                           style="display:inline-block; background:#16a34a; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
-                            Asignar PQRS
-                        </a>
+                        </table>
                     </td>
                 </tr>
 
@@ -90,7 +77,7 @@
                 <tr>
                     <td style="background:#f8fafc; border-top:1px solid #e5e7eb; padding: 20px 36px; text-align:center;">
                         <p style="margin:0; font-size:13px; color:#6b7280;">
-                            Este mensaje es generado automáticamente por el sistema de PQRS.<br>
+                            Este mensaje es una copia informativa generada automáticamente por el sistema de PQRS.<br>
                             <strong style="color:#374151;">Universidad de Ibagué — Centro de Servicios</strong>
                         </p>
                     </td>

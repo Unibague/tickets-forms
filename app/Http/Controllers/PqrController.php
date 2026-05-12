@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PqrCopiaNotificacion;
 use App\Mail\PqrLiderNotificacion;
 use App\Mail\PqrUsuarioNotificacion;
 use App\Services\MantisService;
@@ -18,80 +19,205 @@ class PqrController extends Controller
         $this->mantisService = $mantisService;
     }
 
-    // GET /pqrs/usuarios — todos los usuarios via SOAP mc_project_get_users con cache 1h
+    // GET /pqrs/usuarios — usuarios de Mantis (SOAP) + LDAP combinados
     public function usuarios()
     {
-        $resultado = (function () {
-            $soapUrl  = env('MANTIS_SOAP_URL');
-            $user     = env('MANTIS_SOAP_USER');
-            $pass     = env('MANTIS_SOAP_PASS');
-            $vistos   = [];
-            $usuarios = [];
+        $mantisUsuarios = $this->obtenerUsuariosMantis();
+        $ldapUsuarios   = $this->obtenerUsuariosLdap();
 
-            // project_id=0 trae todos los usuarios del sistema
-            $proyectos = [0];
+        // Combinar: LDAP es la fuente principal, Mantis enriquece con el id interno
+        $vistos   = [];
+        $usuarios = [];
 
-            foreach ($proyectos as $projectId) {
-                $xml = '<?xml version="1.0" encoding="utf-8"?>'
-                     . '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'
-                     . '<soap:Body>'
-                     . '<mc_project_get_users xmlns="http://futureware.biz/mantisconnect">'
-                     . '<username>' . htmlspecialchars($user) . '</username>'
-                     . '<password>' . htmlspecialchars($pass) . '</password>'
-                     . '<project_id>' . $projectId . '</project_id>'
-                     . '<access>10</access>'
-                     . '</mc_project_get_users>'
-                     . '</soap:Body>'
-                     . '</soap:Envelope>';
+        // Indexar Mantis por email para lookup rápido
+        $mantisIndex = [];
+        foreach ($mantisUsuarios as $u) {
+            if (!empty($u['email'])) {
+                $mantisIndex[strtolower($u['email'])] = $u;
+            }
+        }
 
-                $ch = curl_init($soapUrl);
-                curl_setopt_array($ch, [
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_TIMEOUT        => 15,
-                    CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => $xml,
-                    CURLOPT_HTTPHEADER     => [
-                        'Content-Type: text/xml; charset=utf-8',
-                        'SOAPAction: "http://futureware.biz/mantisconnect/mc_project_get_users"',
-                    ],
-                ]);
-                $raw  = curl_exec($ch);
-                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
+        // Primero los del LDAP
+        foreach ($ldapUsuarios as $u) {
+            $email = strtolower($u['email'] ?? '');
+            if (empty($email) || isset($vistos[$email])) continue;
+            $vistos[$email] = true;
+            $mantis = $mantisIndex[$email] ?? [];
+            $usuarios[] = [
+                'id'       => $mantis['id'] ?? 0,
+                'username' => $u['username'],
+                'nombre'   => $u['nombre'],
+                'email'    => $email,
+                'fuente'   => 'ldap',
+            ];
+        }
 
-                if ($code !== 200 || !$raw) continue;
+        // Agregar los de Mantis que no estén en LDAP
+        foreach ($mantisUsuarios as $u) {
+            $email = strtolower($u['email'] ?? '');
+            if (empty($email) || isset($vistos[$email])) continue;
+            $vistos[$email] = true;
+            $usuarios[] = [
+                'id'       => $u['id'],
+                'username' => $u['username'],
+                'nombre'   => $u['nombre'],
+                'email'    => $email,
+                'fuente'   => 'mantis',
+            ];
+        }
 
-                // Usar DOMDocument para parsear la respuesta SOAP
-                libxml_use_internal_errors(true);
-                $doc = new \DOMDocument();
-                if (!$doc->loadXML($raw)) continue;
-                $nodeList = $doc->getElementsByTagName('item');
-                $items    = iterator_to_array($nodeList);
-                foreach ($items as $item) {
-                    $id    = (int)($item->getElementsByTagName('id')->item(0)->nodeValue ?? 0);
-                    $email = $item->getElementsByTagName('email')->item(0)->nodeValue ?? '';
-                    $name  = $item->getElementsByTagName('name')->item(0)->nodeValue ?? '';
-                    $rname = $item->getElementsByTagName('real_name')->item(0)->nodeValue ?? '';
-                    if (empty($email) || empty($name) || isset($vistos[$email])) continue;
-                    $vistos[$email] = true;
-                    $usuarios[] = [
-                        'id'       => $id,
-                        'username' => $name,
-                        'nombre'   => !empty($rname) ? $rname : $name,
-                        'email'    => $email,
-                    ];
+        usort($usuarios, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
+        return response()->json(array_values($usuarios));
+    }
+
+    private function obtenerUsuariosMantis(): array
+    {
+        $soapUrl = env('MANTIS_SOAP_URL');
+        $user    = env('MANTIS_SOAP_USER');
+        $pass    = env('MANTIS_SOAP_PASS');
+        $vistos  = [];
+        $result  = [];
+
+        $xml = '<?xml version="1.0" encoding="utf-8"?>'
+             . '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'
+             . '<soap:Body>'
+             . '<mc_project_get_users xmlns="http://futureware.biz/mantisconnect">'
+             . '<username>' . htmlspecialchars($user) . '</username>'
+             . '<password>' . htmlspecialchars($pass) . '</password>'
+             . '<project_id>0</project_id>'
+             . '<access>10</access>'
+             . '</mc_project_get_users>'
+             . '</soap:Body>'
+             . '</soap:Envelope>';
+
+        $ch = curl_init($soapUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $xml,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: "http://futureware.biz/mantisconnect/mc_project_get_users"',
+            ],
+        ]);
+        $raw  = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code !== 200 || !$raw) return [];
+
+        libxml_use_internal_errors(true);
+        $doc = new \DOMDocument();
+        if (!$doc->loadXML($raw)) return [];
+
+        foreach (iterator_to_array($doc->getElementsByTagName('item')) as $item) {
+            $email = $item->getElementsByTagName('email')->item(0)->nodeValue ?? '';
+            $name  = $item->getElementsByTagName('name')->item(0)->nodeValue ?? '';
+            $rname = $item->getElementsByTagName('real_name')->item(0)->nodeValue ?? '';
+            if (empty($email) || empty($name) || isset($vistos[$email])) continue;
+            $vistos[$email] = true;
+            $result[] = [
+                'id'       => (int)($item->getElementsByTagName('id')->item(0)->nodeValue ?? 0),
+                'username' => $name,
+                'nombre'   => !empty($rname) ? $rname : $name,
+                'email'    => $email,
+            ];
+        }
+
+        return $result;
+    }
+
+    private function obtenerUsuariosLdap(bool $conCargo = false): array
+    {
+        $host   = env('LDAP_HOST',          'ldap://plataforma1.unibague.edu.co');
+        $port   = (int) env('LDAP_PORT',    389);
+        $bindDn = env('LDAP_BIND_DN',       'cn=admin,dc=unibague,dc=edu,dc=co');
+        $bindPw = env('LDAP_BIND_PASSWORD', '');
+        $baseDn = env('LDAP_BASE_DN',       'dc=unibague,dc=edu,dc=co');
+        $filter = env('LDAP_FILTER',        '(objectClass=person)');
+        // Mantis usa mail1 como campo de email en este LDAP
+        $emailField = env('LDAP_EMAIL_FIELD', 'mail1');
+
+        if (empty($bindPw) || !function_exists('ldap_connect')) return [];
+
+        $conn = @ldap_connect($host, $port);
+        if (!$conn) return [];
+
+        ldap_set_option($conn, LDAP_OPT_PROTOCOL_VERSION, 3);
+        ldap_set_option($conn, LDAP_OPT_REFERRALS, 0);
+
+        if (!@ldap_bind($conn, $bindDn, $bindPw)) {
+            ldap_unbind($conn);
+            return [];
+        }
+
+        $attrs  = ['cn', 'name', 'sn', $emailField, 'uid', 'mail1', 'mail2', 'gacctmail', 'cargo', 'dependencia'];
+        $search = @ldap_search($conn, $baseDn, $filter, $attrs, 0, 0, 30);
+        if (!$search) {
+            ldap_unbind($conn);
+            return [];
+        }
+
+        $entries = ldap_get_entries($conn, $search);
+        ldap_unbind($conn);
+
+        $result = [];
+        for ($i = 0; $i < ($entries['count'] ?? 0); $i++) {
+            $e   = $entries[$i];
+            $uid = $e['uid'][0] ?? '';
+
+            // Intentar email en orden de confiabilidad
+            $email = '';
+            foreach ([$emailField, 'gacctmail', 'mail2', 'mail1'] as $f) {
+                $val = $e[strtolower($f)][0] ?? '';
+                if (!empty($val) && $val !== '0' && filter_var($val, FILTER_VALIDATE_EMAIL)) {
+                    $email = $val;
+                    break;
                 }
             }
+            if (empty($email)) continue;
 
-            usort($usuarios, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
-            return array_values($usuarios);
-        })();
-        return response()->json($resultado);
+            // Nombre: preferir 'name', luego cn, luego uid
+            $nombre = trim(
+                $e['name'][0]
+                ?? trim(($e['cn'][0] ?? '') . ' ' . ($e['sn'][0] ?? ''))
+                ?: $uid
+            );
+
+            $result[] = [
+                'username'    => $uid ?: explode('@', $email)[0],
+                'nombre'      => $nombre ?: $uid,
+                'email'       => strtolower($email),
+                'cargo'       => $conCargo ? ($e['cargo'][0] ?? null) : null,
+                'dependencia' => $conCargo ? ($e['dependencia'][0] ?? null) : null,
+            ];
+        }
+
+        return $result;
+    }
+
+    // GET /pqrs/ldap-cargo?email=xxx — retorna cargo y dependencia de un usuario en el LDAP
+    public function ldapCargo(Request $request)
+    {
+        $email  = strtolower(trim($request->query('email', '')));
+        if (empty($email)) return response()->json([]);
+
+        $ldapUsuarios = $this->obtenerUsuariosLdap(true);
+        foreach ($ldapUsuarios as $u) {
+            if (strtolower($u['email']) === $email) {
+                return response()->json([
+                    'cargo'       => $u['cargo']       ?? null,
+                    'dependencia' => $u['dependencia'] ?? null,
+                    'username'    => $u['username']    ?? null,
+                ]);
+            }
+        }
+        return response()->json([]);
     }
 
     
-    // GET /pqrs/form-data
     public function formData()
     {
         return response()->json([
@@ -203,6 +329,16 @@ class PqrController extends Controller
                 \Log::warning('No se pudo enviar correo al líder: ' . $mailErr->getMessage());
             }
 
+            // Correo de copia informativa
+            try {
+                $copiaEmail = env('PQR_COPIA_EMAIL');
+                if ($copiaEmail) {
+                    Mail::to($copiaEmail)->send(new PqrCopiaNotificacion($mailData));
+                }
+            } catch (\Exception $mailErr) {
+                \Log::warning('No se pudo enviar correo de copia: ' . $mailErr->getMessage());
+            }
+
             return response()->json([
                 'message'      => 'PQRS radicada exitosamente',
                 'issue_id'     => $issue['id'],
@@ -213,7 +349,7 @@ class PqrController extends Controller
         }
     }
 
-    // PATCH /pqrs/{issue_id} — actualizar estado, nota y responsable en Mantis
+    // PATCH /pqrs/{issue_id} — actualizar estado, nota, responsable, proyecto y categoría en Mantis
     public function update(Request $request, string $issue_id)
     {
         try {
@@ -221,15 +357,19 @@ class PqrController extends Controller
             $nota        = $request->input('nota');
             $responsable = $request->input('responsable');
             $prioridad   = $request->input('prioridad');
+            $project     = $request->input('project');   // ['name' => 'G3']
+            $category    = $request->input('category');  // ['name' => 'DESARROLLO']
 
             $prioridadMap = ['Alta' => 'high', 'Media' => 'normal', 'Baja' => 'low'];
             $body = [];
             $handler = $this->resolverHandlerMantis($responsable);
             $estadoMantis = MantisService::estadoMantisDesdePqr($estado, $handler !== null);
 
-            if ($prioridad)     $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
-            if ($handler)       $body['handler']  = $handler;
-            if ($estadoMantis)  $body['status']   = ['name' => $estadoMantis];
+            if ($prioridad)    $body['priority'] = ['name' => $prioridadMap[$prioridad] ?? 'normal'];
+            if ($handler)      $body['handler']  = $handler;
+            if ($estadoMantis) $body['status']   = ['name' => $estadoMantis];
+            if ($project)      $body['project']  = is_array($project) ? $project : ['name' => $project];
+            if ($category)     $body['category'] = is_array($category) ? $category : ['name' => $category];
 
             if (!empty($body)) {
                 $this->mantisService->actualizarIssue((int)$issue_id, $body);
@@ -406,6 +546,8 @@ class PqrController extends Controller
             $responsable = $request->input('responsable', 'Responsable');
             $radicado    = $request->input('radicado');
             $issueId     = $request->input('issue_id');
+            $cc          = $request->input('cc', []);
+            $cc          = is_array($cc) ? array_filter($cc, fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL)) : [];
 
             if (!$emailResp || !$radicado) {
                 return response()->json(['error' => 'Faltan datos requeridos'], 400);
@@ -425,12 +567,21 @@ class PqrController extends Controller
                 'email'            => $pqr->email,
                 'prioridad'        => $pqr->prioridad,
                 'asunto'           => $pqr->asunto,
-                'area_responsable' => $pqr->area_enrutamiento,
+                'area_responsable' => $request->input('area_responsable') ?: $pqr->area_enrutamiento,
                 'observaciones'    => $request->input('observaciones', ''),
                 'fecha_limite'     => $this->calcularFechaLimite(5),
             ];
 
-            Mail::to($emailResp)->send(new \App\Mail\PqrAsignacionNotificacion($mailData));
+            $mailable = new \App\Mail\PqrAsignacionNotificacion($mailData);
+            Mail::to($emailResp)->send($mailable);
+
+            // Enviar copia sin botones ni texto de asignación
+            if (!empty($cc)) {
+                $mailDataCopia = array_merge($mailData, ['es_copia' => true]);
+                foreach ($cc as $ccEmail) {
+                    Mail::to($ccEmail)->send(new \App\Mail\PqrAsignacionNotificacion($mailDataCopia));
+                }
+            }
 
             return response()->json(['message' => 'Correo enviado al responsable']);
         } catch (\Exception $e) {

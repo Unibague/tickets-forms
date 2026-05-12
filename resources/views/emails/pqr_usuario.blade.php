@@ -52,10 +52,7 @@
                                 <td style="padding:11px 14px; background:#f9fafb; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Fecha de radicado</td>
                                 <td style="padding:11px 14px; background:#f9fafb; color:#374151; border-bottom:1px solid #e5e7eb;">{{ $data['fecha'] }}</td>
                             </tr>
-                            <tr>
-                                <td style="padding:11px 14px; background:#fffbeb; font-weight:700; color:#92400e;">Fecha límite de respuesta</td>
-                                <td style="padding:11px 14px; background:#fffbeb; color:#92400e; font-weight:700;">{{ $data['fecha_limite'] }} <span style="font-weight:400; font-size:13px;">(5 días hábiles)</span></td>
-                            </tr>
+
                         </table>
                     </td>
                 </tr>
@@ -81,7 +78,7 @@
                         <p style="margin:0 0 16px; color:#374151; font-size:14px;">
                             Puedes consultar el estado de tu solicitud en cualquier momento:
                         </p>
-                        <a href="https://servicios.unibague.edu.co/pqrs/consulta?radicado={{ $data['radicado'] }}"
+                        <a href="https://pqrs.unibague.edu.co/consulta" target="_blank"
                            style="display:inline-block; background:#2563eb; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
                             Consultar estado de mi PQRS
                         </a>
