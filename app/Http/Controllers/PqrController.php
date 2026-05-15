@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\PqrCopiaNotificacion;
 use App\Mail\PqrLiderNotificacion;
+use App\Mail\PqrNecesitaDatosNotificacion;
 use App\Mail\PqrUsuarioNotificacion;
 use App\Services\MantisService;
 use Illuminate\Http\Request;
@@ -217,7 +218,7 @@ class PqrController extends Controller
         return response()->json([]);
     }
 
-    
+
     public function formData()
     {
         return response()->json([
@@ -538,55 +539,36 @@ class PqrController extends Controller
         return $errors;
     }
 
-    // POST /pqrs/notificar-asignacion
-    public function notificarAsignacion(Request $request)
+    // POST /pqrs/notificar-necesita-datos
+    public function notificarNecesitaDatos(Request $request)
     {
         try {
-            $emailResp   = $request->input('email_responsable');
-            $responsable = $request->input('responsable', 'Responsable');
-            $radicado    = $request->input('radicado');
-            $issueId     = $request->input('issue_id');
-            $cc          = $request->input('cc', []);
-            $cc          = is_array($cc) ? array_filter($cc, fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL)) : [];
+            $emailUsuario  = $request->input('email_usuario');
+            $nombre        = $request->input('nombre');
+            $radicado      = $request->input('radicado');
+            $tipoSolicitud = $request->input('tipo_solicitud');
+            $asunto        = $request->input('asunto');
+            $observaciones = $request->input('observaciones', 'Por favor complemente su solicitud con la información requerida.');
 
-            if (!$emailResp || !$radicado) {
+            if (!$emailUsuario || !$radicado) {
                 return response()->json(['error' => 'Faltan datos requeridos'], 400);
             }
 
-            $pqr = \DB::table('pqrs')->where('issue_id', $issueId)->first();
-            if (!$pqr) {
-                return response()->json(['error' => 'PQRS no encontrada en la DB local'], 404);
-            }
-
             $mailData = [
-                'responsable'      => $responsable,
-                'radicado'         => $radicado,
-                'issue_id'         => $issueId,
-                'tipo_solicitud'   => $pqr->tipo_solicitud,
-                'nombre'           => $pqr->nombre,
-                'email'            => $pqr->email,
-                'prioridad'        => $pqr->prioridad,
-                'asunto'           => $pqr->asunto,
-                'area_responsable' => $request->input('area_responsable') ?: $pqr->area_enrutamiento,
-                'observaciones'    => $request->input('observaciones', ''),
-                'fecha_limite'     => $this->calcularFechaLimite(5),
+                'nombre'         => $nombre,
+                'radicado'       => $radicado,
+                'tipo_solicitud' => $tipoSolicitud,
+                'asunto'         => $asunto,
+                'observaciones'  => $observaciones,
             ];
 
-            $mailable = new \App\Mail\PqrAsignacionNotificacion($mailData);
-            Mail::to($emailResp)->send($mailable);
+            Mail::to($emailUsuario)->send(new PqrNecesitaDatosNotificacion($mailData));
 
-            // Enviar copia sin botones ni texto de asignación
-            if (!empty($cc)) {
-                $mailDataCopia = array_merge($mailData, ['es_copia' => true]);
-                foreach ($cc as $ccEmail) {
-                    Mail::to($ccEmail)->send(new \App\Mail\PqrAsignacionNotificacion($mailDataCopia));
-                }
-            }
-
-            return response()->json(['message' => 'Correo enviado al responsable']);
+            return response()->json(['message' => 'Correo enviado al usuario']);
         } catch (\Exception $e) {
-            \Log::error('Error al enviar correo de asignacion: ' . $e->getMessage());
+            \Log::error('Error al enviar correo necesita datos: ' . $e->getMessage());
             return response()->json(['error' => 'No se pudo enviar el correo: ' . $e->getMessage()], 500);
         }
     }
+
 }
