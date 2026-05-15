@@ -79,7 +79,7 @@
                 {{-- Botones --}}
                 <tr>
                     <td style="padding: 0 36px 28px; text-align:center;">
-                        <a href="{{ env('PQRS_APP_URL', 'http://localhost:8091') }}/admin"
+                        <a href="{{ env('PQRS_APP_URL', 'http://localhost:8091') }}/admin/gestionar"
                            style="display:inline-block; background:#16a34a; color:#ffffff; padding:13px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px;">
                             Asignar PQRS
                         </a>
