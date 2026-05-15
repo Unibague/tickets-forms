@@ -157,6 +157,15 @@ class IssuesController extends Controller
         $mantisApi = new MantisApi($this->mantisBaseUrl, $this->mantisToken);
         $issue = $mantisApi->createIssue($this->createIssueData, $user_issues_form_id);
         $issue_object = json_decode($issue);
+
+        if (!$issue_object || !isset($issue_object->issue->id)) {
+            \Log::error('Mantis createIssue respuesta inesperada: ' . $issue);
+            return response()->json([
+                'error' => 'No se pudo crear el ticket en Mantis.',
+                'detalle' => $issue
+            ], 500);
+        }
+
         $issue_id = $issue_object->issue->id;
 
         //Change category to the provided by the user
