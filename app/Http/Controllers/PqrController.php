@@ -40,7 +40,7 @@ class PqrController extends Controller
 
         // Primero los del LDAP
         foreach ($ldapUsuarios as $u) {
-            $email = strtolower($u['email'] ?? '');
+            $email = strtolower(self::limpiarEmail($u['email'] ?? ''));
             if (empty($email) || isset($vistos[$email])) continue;
             $vistos[$email] = true;
             $mantis = $mantisIndex[$email] ?? [];
@@ -55,7 +55,7 @@ class PqrController extends Controller
 
         // Agregar los de Mantis que no estén en LDAP
         foreach ($mantisUsuarios as $u) {
-            $email = strtolower($u['email'] ?? '');
+            $email = strtolower(self::limpiarEmail($u['email'] ?? ''));
             if (empty($email) || isset($vistos[$email])) continue;
             $vistos[$email] = true;
             $usuarios[] = [
@@ -114,7 +114,7 @@ class PqrController extends Controller
         if (!$doc->loadXML($raw)) return [];
 
         foreach (iterator_to_array($doc->getElementsByTagName('item')) as $item) {
-            $email = $item->getElementsByTagName('email')->item(0)->nodeValue ?? '';
+            $email = self::limpiarEmail($item->getElementsByTagName('email')->item(0)->nodeValue ?? '');
             $name  = $item->getElementsByTagName('name')->item(0)->nodeValue ?? '';
             $rname = $item->getElementsByTagName('real_name')->item(0)->nodeValue ?? '';
             if (empty($email) || empty($name) || isset($vistos[$email])) continue;
@@ -465,6 +465,12 @@ class PqrController extends Controller
         }
     }
 
+    private static function limpiarEmail(string $email): string
+    {
+        // Eliminar caracteres no válidos: <, >, espacios, comillas
+        return trim(preg_replace('/[<>"\s]/', '', $email));
+    }
+
     private function calcularFechaLimite(int $diasHabiles): string
     {
         $fecha = new \DateTime();
@@ -567,6 +573,57 @@ class PqrController extends Controller
             return response()->json(['message' => 'Correo enviado al usuario']);
         } catch (\Exception $e) {
             \Log::error('Error al enviar correo necesita datos: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo enviar el correo: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function notificarAsignacion(Request $request)
+    {
+        try {
+            $emailResp   = self::limpiarEmail($request->input('email_responsable', ''));
+            $responsable = $request->input('responsable', '');
+            $radicado    = $request->input('radicado', '');
+            $issueId     = $request->input('issue_id');
+            $cc          = $request->input('cc', []);
+            $cc          = is_array($cc)
+                ? array_values(array_filter(array_map([self::class, 'limpiarEmail'], $cc), fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL)))
+                : [];
+
+            if (!$emailResp || !$radicado) {
+                return response()->json(['error' => 'Faltan datos requeridos'], 400);
+            }
+
+            $pqr = \DB::table('pqrs')->where('issue_id', $issueId)->first();
+            if (!$pqr) {
+                return response()->json(['error' => 'PQRS no encontrada en la DB local'], 404);
+            }
+
+            $mailData = [
+                'responsable'      => $responsable,
+                'radicado'         => $radicado,
+                'issue_id'         => $issueId,
+                'tipo_solicitud'   => $pqr->tipo_solicitud,
+                'nombre'           => $pqr->nombre,
+                'email'            => $pqr->email,
+                'prioridad'        => $pqr->prioridad,
+                'asunto'           => $pqr->asunto,
+                'area_responsable' => $request->input('area_responsable') ?: $pqr->area_enrutamiento,
+                'observaciones'    => $request->input('observaciones', ''),
+                'fecha_limite'     => $this->calcularFechaLimite(5),
+            ];
+
+            Mail::to($emailResp)->send(new \App\Mail\PqrAsignacionNotificacion($mailData));
+
+            if (!empty($cc)) {
+                $copia = array_merge($mailData, ['es_copia' => true]);
+                foreach ($cc as $ccEmail) {
+                    Mail::to($ccEmail)->send(new \App\Mail\PqrAsignacionNotificacion($copia));
+                }
+            }
+
+            return response()->json(['message' => 'Correo enviado al responsable']);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo de asignacion: ' . $e->getMessage());
             return response()->json(['error' => 'No se pudo enviar el correo: ' . $e->getMessage()], 500);
         }
     }
