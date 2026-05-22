@@ -545,6 +545,38 @@ class PqrController extends Controller
         return $errors;
     }
 
+    // POST /pqrs/notificar-rechazo
+    public function notificarRechazo(Request $request)
+    {
+        try {
+            $emailUsuario  = $request->input('email_usuario');
+            $nombre        = $request->input('nombre');
+            $radicado      = $request->input('radicado');
+            $tipoSolicitud = $request->input('tipo_solicitud');
+            $asunto        = $request->input('asunto');
+            $motivo        = $request->input('motivo', 'La solicitud no cumple con los requisitos establecidos.');
+
+            if (!$emailUsuario || !$radicado) {
+                return response()->json(['error' => 'Faltan datos requeridos'], 400);
+            }
+
+            $mailData = [
+                'nombre'         => $nombre,
+                'radicado'       => $radicado,
+                'tipo_solicitud' => $tipoSolicitud,
+                'asunto'         => $asunto,
+                'motivo'         => $motivo,
+            ];
+
+            Mail::to($emailUsuario)->send(new \App\Mail\PqrRechazoNotificacion($mailData));
+
+            return response()->json(['message' => 'Correo de rechazo enviado al solicitante']);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo de rechazo: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo enviar el correo: ' . $e->getMessage()], 500);
+        }
+    }
+
     // POST /pqrs/notificar-necesita-datos
     public function notificarNecesitaDatos(Request $request)
     {

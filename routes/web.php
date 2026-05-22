@@ -43,6 +43,7 @@ $router->get('/pqrs/ldap-cargo',             'PqrController@ldapCargo');
 $router->post('/pqrs',                       'PqrController@store');
 $router->post('/pqrs/notificar',             'PqrController@notificarAsignacion');
 $router->post('/pqrs/notificar-necesita-datos', 'PqrController@notificarNecesitaDatos');
+$router->post('/pqrs/notificar-rechazo',     'PqrController@notificarRechazo');
 $router->patch('/pqrs/{issue_id}',           'PqrController@update');
 $router->delete('/pqrs/{issue_id}',          'PqrController@destroy');
 $router->get('/pqrs/{issue_id}',             'PqrController@show');
