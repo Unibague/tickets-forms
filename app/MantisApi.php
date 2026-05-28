@@ -94,12 +94,14 @@ class MantisApi
     {
         curl_setopt_array($this->httpClient, array(
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_ENCODING       => '',
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_HTTPHEADER => ['Authorization: ' . $this->authorizationToken]
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+            CURLOPT_HTTPHEADER     => ['Authorization: ' . $this->authorizationToken]
         ));
     }
 
@@ -122,8 +124,14 @@ class MantisApi
         if (isset($options['headers'])) {
             curl_setopt($this->httpClient, CURLOPT_HTTPHEADER, $options['headers']); // Set auth header
         }
-        $response = curl_exec($this->httpClient);
+        $response  = curl_exec($this->httpClient);
+        $curlError = curl_error($this->httpClient);
         curl_close($this->httpClient);
+
+        if ($response === false) {
+            throw new \RuntimeException('No se pudo conectar con Mantis: ' . $curlError);
+        }
+
         return $response;
     }
 

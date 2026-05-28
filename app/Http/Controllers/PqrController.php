@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\PqrCopiaNotificacion;
 use App\Mail\PqrLiderNotificacion;
 use App\Mail\PqrNecesitaDatosNotificacion;
+use App\Mail\PqrRespuestaNotificacion;
 use App\Mail\PqrUsuarioNotificacion;
 use App\Services\MantisService;
 use Illuminate\Http\Request;
@@ -607,6 +608,35 @@ class PqrController extends Controller
             \Log::error('Error al enviar correo necesita datos: ' . $e->getMessage());
             return response()->json(['error' => 'No se pudo enviar el correo: ' . $e->getMessage()], 500);
         }
+    }
+
+    // POST /pqrs/notificar-respuesta
+    public function notificarRespuesta(Request $request)
+    {
+        $emailUsuario  = $request->input('email_usuario');
+        $radicado      = $request->input('radicado');
+
+        if (!$emailUsuario || !$radicado) {
+            return response()->json(['error' => 'Faltan datos requeridos'], 400);
+        }
+
+        $mailData = [
+            'nombre'         => $request->input('nombre'),
+            'radicado'       => $radicado,
+            'tipo_solicitud' => $request->input('tipo_solicitud', 'Solicitud'),
+            'asunto'         => $request->input('asunto'),
+            'respuesta'      => $request->input('respuesta', ''),
+            'archivos'       => $request->input('archivos', []),
+            'estado'         => $request->input('estado', 'Resuelto'),
+        ];
+
+        try {
+            Mail::to($emailUsuario)->send(new PqrRespuestaNotificacion($mailData));
+        } catch (\Exception $e) {
+            \Log::warning('No se pudo enviar correo de respuesta: ' . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'Correo de respuesta enviado al solicitante']);
     }
 
     public function notificarAsignacion(Request $request)
