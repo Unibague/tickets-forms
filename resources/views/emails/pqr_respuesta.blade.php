@@ -70,12 +70,44 @@
                 @if (!empty($data['archivos']))
                 <tr>
                     <td style="padding: 16px 36px 0;">
-                        <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#374151;">Archivos adjuntos mencionados:</p>
-                        <ul style="margin:0; padding-left:20px; color:#374151; font-size:14px; line-height:1.8;">
-                            @foreach ($data['archivos'] as $archivo)
-                            <li>{{ $archivo }}</li>
-                            @endforeach
-                        </ul>
+                        <p style="margin:0 0 10px; font-size:13px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.5px;">Archivos adjuntos</p>
+                        @foreach ($data['archivos'] as $archivo)
+                        @php
+                            $nombre = is_array($archivo) ? $archivo['nombre'] : $archivo;
+                            $url    = is_array($archivo) ? $archivo['url'] : null;
+                            $ext    = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
+                            $esImagen = in_array($ext, ['jpg','jpeg','png','gif','webp']);
+                            $esVideo  = in_array($ext, ['mp4','webm']);
+                        @endphp
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+                            <tr>
+                                <td style="padding:10px 14px; background:#f9fafb; display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:18px;">{{ $esVideo ? '🎬' : ($esImagen ? '🖼️' : '📎') }}</span>
+                                    @if($url)
+                                        <a href="{{ $url }}" target="_blank"
+                                           style="color:#1d4ed8; font-weight:600; font-size:14px; text-decoration:none;">
+                                            {{ $nombre }}
+                                        </a>
+                                        &nbsp;
+                                        <a href="{{ $url }}" target="_blank"
+                                           style="display:inline-block; background:#1d4ed8; color:#fff; padding:4px 12px; border-radius:5px; font-size:12px; text-decoration:none; font-weight:600;">
+                                            {{ $esVideo ? 'Ver video' : ($esImagen ? 'Ver imagen' : 'Abrir') }}
+                                        </a>
+                                    @else
+                                        <span style="font-size:14px; color:#374151;">{{ $nombre }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @if($url && $esImagen)
+                            <tr>
+                                <td style="padding:0 14px 12px; background:#f9fafb; text-align:center;">
+                                    <img src="{{ $url }}" alt="{{ $nombre }}"
+                                         style="max-width:100%; max-height:300px; border-radius:6px; border:1px solid #e5e7eb;" />
+                                </td>
+                            </tr>
+                            @endif
+                        </table>
+                        @endforeach
                     </td>
                 </tr>
                 @endif
