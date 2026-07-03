@@ -23,7 +23,7 @@
                 <tr>
                     <td style="padding: 28px 36px 0;">
                         <p style="margin:0; color:#374151; font-size:15px;">
-                            Estimado(a) <strong>{{ $data['nombre'] }}</strong>, hemos recibido tu solicitud. A continuación el resumen:
+                            Estimado(a) <strong>{{ $data['nombre'] === 'Anónimo' ? 'usuario' : $data['nombre'] }}</strong>, hemos recibido tu solicitud. A continuación el resumen:
                         </p>
                     </td>
                 </tr>
