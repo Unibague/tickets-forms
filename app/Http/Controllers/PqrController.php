@@ -170,9 +170,9 @@ class PqrController extends Controller
             $e   = $entries[$i];
             $uid = $e['uid'][0] ?? '';
 
-            // Intentar email en orden de confiabilidad
+            // Intentar email en orden de confiabilidad: mail1 primero (correo institucional)
             $email = '';
-            foreach ([$emailField, 'gacctmail', 'mail2', 'mail1'] as $f) {
+            foreach (['mail1', 'gacctmail', 'mail2', $emailField] as $f) {
                 $val = $e[strtolower($f)][0] ?? '';
                 if (!empty($val) && $val !== '0' && filter_var($val, FILTER_VALIDATE_EMAIL)) {
                     $email = $val;
